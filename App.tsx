@@ -115,21 +115,20 @@ const App: React.FC = () => {
 
       // @ts-ignore
       if (!tempVideo.captureStream) {
-        throw new Error("H.264 export requires a Chromium-based browser (Chrome/Edge/Brave).");
+        throw new Error("High-quality export requires a modern Chromium-based browser.");
       }
 
       // @ts-ignore
       const stream = tempVideo.captureStream();
       
-      // Rigorous codec prioritization for social platform compatibility (H.264 + AAC preferred)
+      // Elite social platform compatibility: H.264 (avc1) + AAC (mp4a)
       const supportedMimeTypes = [
         'video/mp4;codecs=avc1.42E01E,mp4a.40.2', // H.264 High Profile + AAC
         'video/mp4;codecs=h264,aac',
         'video/mp4;codecs=h264',
         'video/mp4',
-        'video/webm;codecs=h264,opus', // WebM wrapper with H.264
+        'video/webm;codecs=h264,opus',
         'video/webm;codecs=h264',
-        'video/webm;codecs=vp9,opus',
         'video/webm'
       ];
       
@@ -137,7 +136,7 @@ const App: React.FC = () => {
       
       const recorder = new MediaRecorder(stream, { 
         mimeType: mimeType,
-        videoBitsPerSecond: 12000000 // Elite 12Mbps bitrate for crystal clear social uploads
+        videoBitsPerSecond: 12000000 // 12Mbps for ultra-clean H.264 social uploads
       });
       
       const chunks: Blob[] = [];
@@ -149,7 +148,6 @@ const App: React.FC = () => {
         const a = document.createElement('a');
         a.href = url;
         
-        // Strictly enforcing .mp4 for the target file
         const baseName = segment.filename_suggestion || `Viral_Clip_${index + 1}`;
         a.download = `${baseName}.mp4`; 
         
@@ -157,13 +155,12 @@ const App: React.FC = () => {
         URL.revokeObjectURL(url);
         tempVideo.remove();
         setDownloadingIdx(null);
-        showNotification("Viral MP4 export finalized.", "success");
+        showNotification("Viral H.264/AAC export complete.", "success");
       };
 
       recorder.start();
       await tempVideo.play();
 
-      // Record precisely for the segment duration
       const durationMs = (segment.end - segment.start) * 1000;
       setTimeout(() => {
         tempVideo.pause();
@@ -172,7 +169,7 @@ const App: React.FC = () => {
 
     } catch (err: any) {
       setDownloadingIdx(null);
-      showNotification(err.message || "Export pipeline failed.", "error");
+      showNotification(err.message || "Export pipeline error.", "error");
     }
   };
 
@@ -192,13 +189,13 @@ const App: React.FC = () => {
   }, [previewRange]);
 
   const loadingMessages = [
-    "Scanning frames for visual high-points and micro-expressions...",
-    "Neural engines calculating retention velocity per frame...",
-    "Identifying scroll-stopping 'shock' moments in the timeline...",
-    "Matching auditory peaks with potential high-impact captions...",
-    "Clustering frames by emotional intensity and platform resonance...",
-    "Generating 2026-optimized hook titles and metadata...",
-    "Finalizing the Elite 8-Pack Strategy..."
+    "Analyzing frames for H.264 visual high-points...",
+    "Neural engines optimizing retention velocity...",
+    "Identifying scroll-stopping 'shock' moments...",
+    "Generating 2026-ready metadata for viral growth...",
+    "Clustering frames by emotional intensity...",
+    "Matching auditory peaks with high-impact captions...",
+    "Finalizing the Elite Viral Strategy Pack..."
   ];
 
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
@@ -236,9 +233,9 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="hidden md:flex items-center gap-10">
-          <a href="#" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all">Optimization Guide</a>
+          <a href="#" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all">H.264 Optimization</a>
           <button className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all flex items-center gap-3">
-            <i className="fab fa-discord text-indigo-400 text-base"></i> Creator Community
+            <i className="fab fa-discord text-indigo-400 text-base"></i> Creator Lab
           </button>
         </div>
       </nav>
@@ -248,13 +245,13 @@ const App: React.FC = () => {
         <section className="text-center mb-24 animate-fade-in">
           <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.25em] mb-10 shadow-lg shadow-blue-500/5">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
-            2026 Social Meta Active
+            H.264 High Profile Enabled
           </div>
           <h1 className="text-6xl md:text-[6.5rem] font-black mb-10 leading-[0.85] tracking-tight text-white">
-            Extract Viral <span className="gradient-text">Gold.</span>
+            Viral <span className="gradient-text">H.264</span> Logic.
           </h1>
           <p className="text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
-            Our elite neural framework identifies the top 8 segments from your source media that will trigger maximum algorithmic velocity across TikTok, Reels, and Shorts.
+            Extract elite 30-45s segments optimized for 2026 social algorithms with guaranteed platform compatibility.
           </p>
         </section>
 
@@ -271,7 +268,7 @@ const App: React.FC = () => {
             <div className="glass-card p-10 rounded-[3rem] h-full flex flex-col justify-between border-slate-700/30">
               <div className="space-y-10">
                 <div>
-                  <h3 className="text-2xl font-black mb-1 tracking-tight">Growth Logic</h3>
+                  <h3 className="text-2xl font-black mb-1 tracking-tight uppercase">Growth Engine</h3>
                   <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-8">Neural extraction parameters</p>
                   
                   <div className="space-y-6">
@@ -314,7 +311,7 @@ const App: React.FC = () => {
                     <div className="flex items-center justify-between p-5 bg-slate-950 border border-slate-800 rounded-3xl">
                       <div>
                         <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Retention Peaks</div>
-                        <div className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">Prioritize high-emotion moments</div>
+                        <div className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">H.264 Optimized Cuts</div>
                       </div>
                       <button 
                         onClick={() => setHighlightMode(!highlightMode)}
@@ -352,12 +349,12 @@ const App: React.FC = () => {
                   {analysis.status === AnalysisStatus.ANALYZING ? (
                     <>
                       <div className="w-5 h-5 border-[3px] border-slate-600 border-t-white rounded-full animate-spin"></div>
-                      Processing Timeline...
+                      Encoding Strategy...
                     </>
                   ) : (
                     <>
                       <i className="fas fa-wand-magic-sparkles"></i>
-                      Extract Viral Clips
+                      Analyze Viral Clips
                     </>
                   )}
                 </button>
@@ -366,7 +363,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Video Preview Section */}
         {videoUrl && (
           <section className="mb-32 animate-fade-in">
             <div className="max-w-5xl mx-auto relative group">
@@ -401,7 +397,6 @@ const App: React.FC = () => {
           </section>
         )}
 
-        {/* Loading State Overlay */}
         {analysis.status === AnalysisStatus.ANALYZING && (
           <div className="text-center py-32 animate-fade-in relative">
             <div className="w-36 h-36 mx-auto mb-12 relative">
@@ -411,22 +406,21 @@ const App: React.FC = () => {
                 <i className="fas fa-brain text-5xl text-white pulse-ring opacity-80"></i>
               </div>
             </div>
-            <h2 className="text-5xl font-black mb-6 text-white tracking-tight">Strategy Pack Assembly</h2>
+            <h2 className="text-5xl font-black mb-6 text-white tracking-tight uppercase">Strategic Assembly</h2>
             <p className="text-slate-500 text-xl font-medium max-w-xl mx-auto leading-relaxed italic">"{loadingMessages[loadingMsgIdx]}"</p>
           </div>
         )}
 
-        {/* Results Grid */}
         {analysis.status === AnalysisStatus.COMPLETED && (
           <section className="animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 px-4">
               <div>
-                <h2 className="text-5xl font-black mb-4 text-white tracking-tight leading-tight">Elite Viral Pack</h2>
+                <h2 className="text-5xl font-black mb-4 text-white tracking-tight leading-tight uppercase">Elite Viral Pack</h2>
                 <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Extraction Logic: <span className="text-blue-400">{targetingMode} Growth</span></p>
               </div>
               <div className="flex items-center gap-5">
                 <div className="px-6 py-3 bg-slate-900/50 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  8 Candidates <span className="text-slate-600 mx-2">|</span> 2026 Optimized
+                  8 H.264 CANDIDATES <span className="text-slate-600 mx-2">|</span> 2026 OPTIMIZED
                 </div>
               </div>
             </div>
@@ -447,7 +441,6 @@ const App: React.FC = () => {
           </section>
         )}
 
-        {/* Error State */}
         {analysis.status === AnalysisStatus.ERROR && (
           <div className="max-w-2xl mx-auto glass-card border-rose-500/30 p-16 rounded-[4rem] text-center shadow-2xl">
             <div className="w-24 h-24 bg-rose-500/10 text-rose-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 border border-rose-500/20 shadow-lg">
@@ -464,17 +457,16 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Feature Grid (Home) */}
         {analysis.status === AnalysisStatus.IDLE && !videoFile && (
           <section className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-20 pb-32">
             {[
-              {icon: 'fa-microchip', color: 'text-blue-500', title: 'Neural Analysis', desc: 'State-of-the-art frame evaluation to detect shock value and retention spikes.'},
-              {icon: 'fa-chart-line', color: 'text-indigo-500', title: 'Viral Propensity', desc: 'Predictive modeling of 2026 growth trends for TikTok and IG Reels.'},
-              {icon: 'fa-wand-sparkles', color: 'text-purple-500', title: 'Automated Metadata', desc: 'Instant scroll-stopping captions, filenames, and music style suggestions.'}
+              {icon: 'fa-microchip', color: 'text-blue-500', title: 'H.264 Neural Engine', desc: 'Advanced frame evaluation for high-profile MP4 delivery.'},
+              {icon: 'fa-chart-line', color: 'text-indigo-500', title: '2026 Viral Propensity', desc: 'Predictive modeling based on upcoming platform retention standards.'},
+              {icon: 'fa-wand-sparkles', color: 'text-purple-500', title: 'Automated Meta', desc: 'Instant scroll-stopping captions optimized for AAC audio-visual flow.'}
             ].map((f, i) => (
               <div key={i} className="glass-card p-12 rounded-[3.5rem] border-slate-800/40 hover:bg-white/5 transition-all group shadow-xl">
                 <div className={`${f.color} mb-8 transition-transform group-hover:scale-110 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]`}><i className={`fas ${f.icon} text-5xl`}></i></div>
-                <h4 className="font-black text-2xl mb-5 text-white tracking-tight">{f.title}</h4>
+                <h4 className="font-black text-2xl mb-5 text-white tracking-tight uppercase">{f.title}</h4>
                 <p className="text-slate-500 text-base leading-relaxed font-medium">{f.desc}</p>
               </div>
             ))}
@@ -488,7 +480,7 @@ const App: React.FC = () => {
               <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center border border-slate-800">
                 <i className="fas fa-bolt-lightning text-slate-500 text-lg"></i>
               </div>
-              <span className="text-[12px] font-black text-slate-500 uppercase tracking-[0.4em]">ViralClips Pro • Elite Framework 2.0</span>
+              <span className="text-[12px] font-black text-slate-500 uppercase tracking-[0.4em]">ViralClips Pro • H.264 Optimized</span>
            </div>
            <div className="flex gap-12 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">
               <a href="#" className="hover:text-blue-500 transition-colors">Infrastructure</a>

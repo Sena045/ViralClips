@@ -29,41 +29,35 @@ export class GeminiService {
   ): Promise<ViralSegment[]> {
     const base64Data = await this.fileToBase64(videoFile);
     
-    const prompt = `You are the world's best viral shorts strategist for TikTok, YouTube Shorts, and Instagram Reels in 2026. You are an expert Shorts/Reels editor who knows exactly how to make MP4 clips perform best.
+    const prompt = `You are the world's most elite viral shorts strategist. You specialize in H.264 video and AAC audio delivery formats for 2026 platforms (TikTok, Reels, YouTube Shorts).
 
-Analyze the uploaded video for a ${language} speaking audience.
+Analyze the uploaded video for a ${language} audience.
 
-Your ONLY output must be a valid JSON array with EXACTLY 8 objects — nothing else, no explanations, no markdown, no code fences, no apologies.
+Your task: Identify EXACTLY 8 viral segments. Each must be 30-45 seconds long.
 
-IMPORTANT: The final output will be exported as an MP4 with H.264 video and AAC audio. Ensure all text metadata (hooks, captions, first_frame_text) is optimized for high-retention on mobile devices using these standards.
+IMPORTANT: The output will be exported as MP4 (H.264/AAC). Your captions and hook metadata must "look good" when viewed on mobile screens with these codecs. Use high-impact language, emotional hooks, and clear value propositions.
 
-Prioritize clips with:
-- Extremely strong hook in first 3 seconds
-- High emotional intensity (funny, shocking, relatable, inspiring, rage, awe)
-- Instant shareability (people tag friends, save, duet)
-- Retention hooks (curiosity, value, story twist, visual/audio energy)
+Return ONLY a valid JSON array of 8 objects. No markdown. No text outside the JSON.
 
-For each of the 8 viral segments, generate MP4-ready metadata that maximizes play rate and share rate.
+Fields required for each segment:
+- "start": number (exact start time in seconds)
+- "end": number (exact end time in seconds, duration 30-45s)
+- "hook": string (5-10 word high-velocity title)
+- "mp4_caption": string (complete ready-to-post caption with emojis, tags, and CTA)
+- "filename_suggestion": string (SEO-optimized slug)
+- "first_frame_text": string (short 4-8 word "scroll stopper" overlay text)
+- "music_suggestion": string (2026 trending music style)
+- "score": number (1-10 virality rating)
+- "reasoning": string (1-2 sentences on why this segment fits the algorithm)
+- "duration": number (end - start)
 
-Return ONLY these exact fields for each object:
-- "start": number (exact start time in seconds, e.g. 12.5)
-- "end": number (exact end time in seconds, duration must be 30–45 seconds)
-- "hook": string (5–10 word ultra-catchy title for the short)
-- "mp4_caption": string (perfect ready-to-post caption: strong hook, 3–6 emojis, 1–3 trending hashtags, powerful CTA)
-- "filename_suggestion": string (clean SEO-friendly MP4 filename: no spaces, keywords included)
-- "first_frame_text": string (short bold text to overlay on first frame: 4–8 words max, curiosity/shock value)
-- "music_suggestion": string (style of trending royalty-free music that fits, e.g. "Viral TikTok Phonk 2026")
-- "score": number (virality score 1–10 — be brutally honest)
-- "reasoning": string (1-2 sentences explaining the algorithm fit)
-- "duration": number (end - start in seconds)
+Strict Rules:
+- Return ONLY JSON.
+- If analysis fails, return [].
+- Targeting: ${targetingMode}
+- High-Emotion Peaks: ${highlightMode ? 'ENABLED' : 'DISABLED'}
 
-Strict rules:
-- Return ONLY the JSON array.
-- If video is unanalyzable, return [].
-- Targeting Mode: ${targetingMode}
-- Highlight Mode: ${highlightMode ? 'ENABLED' : 'DISABLED'}
-
-Begin analysis immediately.`;
+Process now.`;
 
     try {
       const response = await this.ai.models.generateContent({
@@ -93,13 +87,13 @@ Begin analysis immediately.`;
       const segments: ViralSegment[] = JSON.parse(cleanedText);
       
       if (!Array.isArray(segments)) {
-        throw new Error("Invalid response format: expected an array.");
+        throw new Error("Invalid neural response format.");
       }
       
       return segments;
     } catch (error: any) {
       console.error("Gemini analysis error:", error);
-      throw new Error(error.message || "Failed to analyze video.");
+      throw new Error(error.message || "Neural extraction failed.");
     }
   }
 }
