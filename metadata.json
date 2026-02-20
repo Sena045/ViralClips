@@ -1,0 +1,8 @@
+{
+  "name": "ViralClips AI - Elite Shorts Editor",
+  "description": "An AI-powered video analyzer that identifies high-potential viral segments for YouTube Shorts, TikTok, and Instagram Reels using advanced Gemini models.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
