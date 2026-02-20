@@ -30,91 +30,93 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
     try {
       await navigator.clipboard.writeText(segment.mp4_caption);
       setIsCopying(true);
-      onNotify('Caption copied to clipboard!', 'success');
+      onNotify('Viral caption ready for paste.', 'success');
       setTimeout(() => setIsCopying(false), 2000);
     } catch (err) {
-      onNotify('Failed to copy caption.', 'error');
+      onNotify('Clipboard access denied.', 'error');
     }
   };
 
   return (
-    <div className="glass-card rounded-2xl overflow-hidden hover:ring-1 hover:ring-blue-500/50 transition-all flex flex-col h-full relative group">
+    <div className="glass-card rounded-[2.5rem] overflow-hidden hover:ring-2 hover:ring-blue-500/40 transition-all duration-500 flex flex-col h-full relative group shadow-xl">
       {isDownloading && (
-        <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 animate-fade-in">
-          <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <h5 className="font-bold text-lg mb-1">Exporting MP4...</h5>
-          <p className="text-xs text-slate-400 leading-relaxed">Encoding with optimized bitrates for 2026 platform standards.</p>
+        <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center text-center p-8 animate-fade-in border-2 border-blue-500/20 rounded-[2.5rem]">
+          <div className="w-16 h-16 border-[5px] border-blue-500/10 border-t-blue-500 rounded-full animate-spin mb-6"></div>
+          <h5 className="font-black text-xl mb-2 text-white uppercase tracking-tighter">Encoding MP4</h5>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Applying H.264 profile optimization for 2026 platform standards.</p>
         </div>
       )}
 
-      <div className="relative h-48 bg-slate-900 flex items-center justify-center overflow-hidden">
+      <div className="relative h-56 bg-slate-900 flex items-center justify-center overflow-hidden">
         {/* Scroll Stopper Overlay Simulation */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 transform -rotate-1 shadow-2xl">
-             <span className="text-white text-xs font-black uppercase text-center block leading-tight tracking-tight">
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-6 pointer-events-none">
+          <div className="bg-black/70 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 transform -rotate-2 shadow-2xl ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-500">
+             <span className="text-white text-[10px] font-black uppercase text-center block leading-tight tracking-tight max-w-[140px]">
                {segment.first_frame_text}
              </span>
           </div>
         </div>
 
-        <div className="absolute top-3 left-3 z-30 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wider border border-white/10">
-          Viral Candidate #{index + 1}
+        <div className="absolute top-4 left-4 z-30 bg-black/80 backdrop-blur-xl px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] border border-white/10 shadow-lg text-slate-300">
+          Neural Hit #{index + 1}
         </div>
-        <div className="absolute top-3 right-3 z-30 flex flex-col gap-1 items-end">
-            <span className="bg-blue-600/90 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-blue-400/30">
+        
+        <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 items-end">
+            <span className="bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-400/30 shadow-lg text-white">
                 {segment.duration}s
             </span>
-            <span className="bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest text-slate-400 border border-slate-700/50">
+            <span className="bg-slate-950/90 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50 shadow-md">
                 {segment.music_suggestion}
             </span>
         </div>
         
         <button 
           onClick={() => onPreview(segment.start, segment.end)}
-          aria-label="Preview this clip"
-          className="group/btn relative z-30 w-14 h-14 bg-white/10 hover:bg-blue-600 backdrop-blur-md rounded-full flex items-center justify-center transition-all border border-white/20 shadow-2xl"
+          aria-label="Preview Neural Loop"
+          className="group/btn relative z-30 w-16 h-16 bg-white/10 hover:bg-blue-600 backdrop-blur-xl rounded-full flex items-center justify-center transition-all border border-white/20 shadow-2xl active:scale-90"
         >
-          <i className="fas fa-play text-lg translate-x-0.5 group-hover/btn:scale-110 transition-transform"></i>
+          <i className="fas fa-play text-xl translate-x-0.5 text-white group-hover/btn:scale-125 transition-transform"></i>
+          <div className="absolute inset-0 rounded-full border border-white/20 animate-ping opacity-20"></div>
         </button>
         
-        <div className="absolute inset-0 opacity-40 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
-        <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-700 bg-[url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
+        <div className="absolute inset-0 opacity-60 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+        <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-[2s] bg-[url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
       </div>
       
-      <div className="p-5 flex-1 flex flex-col">
-        <div className="flex justify-between items-start mb-4">
-          <h4 className="font-bold text-base leading-tight flex-1 mr-3 line-clamp-2">{segment.hook}</h4>
-          <div className="text-right flex flex-col items-center">
-            <span className={`text-xl font-black ${getScoreColor(segment.score)}`}>{segment.score}</span>
-            <span className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Virality</span>
+      <div className="p-6 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-6">
+          <h4 className="font-black text-lg leading-[1.1] flex-1 mr-4 line-clamp-2 text-white tracking-tight uppercase">{segment.hook}</h4>
+          <div className="text-right flex flex-col items-center bg-slate-950 px-3 py-2 rounded-2xl border border-slate-800 shadow-inner">
+            <span className={`text-2xl font-black ${getScoreColor(segment.score)}`}>{segment.score}</span>
+            <span className="text-[8px] text-slate-600 font-black uppercase tracking-widest">Growth</span>
           </div>
         </div>
         
-        <div className="mb-4 bg-slate-800/30 p-3 rounded-xl border border-slate-700/50">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Optimized Caption</span>
+        <div className="mb-6 bg-slate-950 p-4 rounded-3xl border border-slate-800 shadow-inner group/caption">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em]">Social Meta Copy</span>
             <button 
               onClick={handleCopyCaption}
-              className={`text-[10px] font-bold transition-colors ${isCopying ? 'text-green-400' : 'text-blue-400 hover:text-blue-300'}`}
+              className={`text-[9px] font-black uppercase tracking-widest transition-all px-3 py-1 rounded-lg border ${isCopying ? 'text-green-400 border-green-500/20 bg-green-500/5' : 'text-blue-500 border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 hover:text-blue-400'}`}
             >
-              <i className={`fas ${isCopying ? 'fa-check' : 'fa-copy'} mr-1`}></i>
+              <i className={`fas ${isCopying ? 'fa-check' : 'fa-copy'} mr-2`}></i>
               {isCopying ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed line-clamp-3 italic">"{segment.mp4_caption}"</p>
+          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3 italic font-medium">"{segment.mp4_caption}"</p>
         </div>
 
-        <div className="mb-4 flex flex-col gap-1">
-          <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Target Filename</div>
-          <div className="text-[10px] bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800 font-mono text-slate-400 truncate">
+        <div className="mb-6 flex flex-col gap-2">
+          <div className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em]">Target Filename</div>
+          <div className="text-[10px] bg-slate-950 px-4 py-2.5 rounded-2xl border border-slate-800 font-mono text-slate-500 truncate shadow-inner italic">
             {segment.filename_suggestion}.mp4
           </div>
         </div>
         
-        <div className="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">Segment</span>
-            <span className="text-[11px] font-mono font-bold text-slate-300">
+        <div className="mt-auto pt-6 border-t border-slate-800/50 flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">Neural Stamp</span>
+            <span className="text-[11px] font-mono font-black text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
               {formatTime(segment.start)} — {formatTime(segment.end)}
             </span>
           </div>
@@ -122,9 +124,9 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
           <button 
             disabled={isDownloading}
             onClick={() => onDownload(segment, index)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white hover:bg-blue-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
           >
-            <i className="fas fa-file-video"></i>
+            <i className="fas fa-file-export text-sm"></i>
             MP4 Export
           </button>
         </div>
