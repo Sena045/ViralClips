@@ -28,7 +28,7 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
 
   const handleCopyCaption = async () => {
     try {
-      await navigator.clipboard.writeText(segment.mp4_caption);
+      await navigator.clipboard.writeText(segment.social_caption);
       setIsCopying(true);
       onNotify('Viral caption ready for paste.', 'success');
       setTimeout(() => setIsCopying(false), 2000);
@@ -52,7 +52,7 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
         <div className="absolute inset-0 z-20 flex items-center justify-center p-6 pointer-events-none">
           <div className="bg-black/70 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 transform -rotate-2 shadow-2xl ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-500">
              <span className="text-white text-[10px] font-black uppercase text-center block leading-tight tracking-tight max-w-[140px]">
-               {segment.first_frame_text}
+               {segment.first_frame_overlay}
              </span>
           </div>
         </div>
@@ -63,15 +63,17 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
         
         <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 items-end">
             <span className="bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-400/30 shadow-lg text-white">
-                {segment.duration}s
+                {segment.duration_seconds}s
             </span>
-            <span className="bg-slate-950/90 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50 shadow-md">
-                {segment.music_suggestion}
-            </span>
+            {segment.music_suggestion && (
+              <span className="bg-slate-950/90 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50 shadow-md">
+                  {segment.music_suggestion}
+              </span>
+            )}
         </div>
         
         <button 
-          onClick={() => onPreview(segment.start, segment.end)}
+          onClick={() => onPreview(segment.start_time_seconds, segment.end_time_seconds)}
           aria-label="Preview Neural Loop"
           className="group/btn relative z-30 w-16 h-16 bg-white/10 hover:bg-blue-600 backdrop-blur-xl rounded-full flex items-center justify-center transition-all border border-white/20 shadow-2xl active:scale-90"
         >
@@ -85,9 +87,9 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
       
       <div className="p-6 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-6">
-          <h4 className="font-black text-lg leading-[1.1] flex-1 mr-4 line-clamp-2 text-white tracking-tight uppercase">{segment.hook}</h4>
+          <h4 className="font-black text-lg leading-[1.1] flex-1 mr-4 line-clamp-2 text-white tracking-tight uppercase">{segment.hook_title}</h4>
           <div className="text-right flex flex-col items-center bg-slate-950 px-3 py-2 rounded-2xl border border-slate-800 shadow-inner">
-            <span className={`text-2xl font-black ${getScoreColor(segment.score)}`}>{segment.score}</span>
+            <span className={`text-2xl font-black ${getScoreColor(segment.virality_score / 10)}`}>{segment.virality_score}</span>
             <span className="text-[8px] text-slate-600 font-black uppercase tracking-widest">Growth</span>
           </div>
         </div>
@@ -103,13 +105,13 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
               {isCopying ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3 italic font-medium">"{segment.mp4_caption}"</p>
+          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3 italic font-medium">"{segment.social_caption}"</p>
         </div>
 
         <div className="mb-6 flex flex-col gap-2">
           <div className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em]">Target Filename</div>
           <div className="text-[10px] bg-slate-950 px-4 py-2.5 rounded-2xl border border-slate-800 font-mono text-slate-500 truncate shadow-inner italic">
-            {segment.filename_suggestion}.mp4
+            {segment.seo_slug}.mp4
           </div>
         </div>
         
@@ -117,7 +119,7 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
           <div className="flex flex-col gap-1">
             <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">Neural Stamp</span>
             <span className="text-[11px] font-mono font-black text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-              {formatTime(segment.start)} — {formatTime(segment.end)}
+              {formatTime(segment.start_time_seconds)} — {formatTime(segment.end_time_seconds)}
             </span>
           </div>
           

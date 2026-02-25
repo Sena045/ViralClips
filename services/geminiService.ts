@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { ViralSegment, TargetingMode } from "../types";
+import { ViralSegment, TargetingMode, AnalysisResult } from "../types";
 
 export class GeminiService {
   private ai: any = null;
@@ -33,38 +33,52 @@ export class GeminiService {
     language: string, 
     targetingMode: TargetingMode,
     highlightMode: boolean
-  ): Promise<ViralSegment[]> {
+  ): Promise<AnalysisResult> {
     const base64Data = await this.fileToBase64(videoFile);
     
-    const prompt = `You are the world's most elite viral shorts strategist. You specialize in H.264 video and AAC audio delivery formats for 2026 platforms (TikTok, Reels, YouTube Shorts).
+    const prompt = `You are ViralClips AI, an elite 2026 shorts editor specialized in repurposing video content into high-velocity TikTok/Reels/Shorts clips. You understand current algorithms: prioritize strong hooks in first 3 seconds, emotional peaks, questions/curiosity gaps, fast pacing, relatability, controversy (mild), quotable lines, visual surprises, and self-contained segments that drive loops/re-watches.
 
-Analyze the uploaded video for a ${language} audience.
+Task: Analyze the provided video content. Extract EXACTLY 8 high-potential clips (30-45 seconds each) optimized for maximum retention and virality.
 
-Your task: Identify EXACTLY 8 viral segments. Each must be 30-45 seconds long.
+Key Evaluation Criteria (score each clip internally 0-100 for virality propensity):
+- Hook strength (first 3-5s must grab instantly)
+- Emotional/engagement peaks (shock, laugh, "aha", drama, relatability)
+- Pacing & energy (quick cuts potential, no slow exposition)
+- Self-contained value (works without full video context)
+- 2026 trends: authenticity/raw moments > polish, niche resonance or broad appeal, text-overlay friendly, loop potential
+- Platform fit: vertical framing cues, face/upper-body focus, audio-visual sync for H.264 exports
 
-IMPORTANT: The output will be exported as MP4 (H.264/AAC). Your captions and hook metadata must "look good" when viewed on mobile screens with these codecs. Use high-impact language, emotional hooks, and clear value propositions.
+Strategic Mode: ${targetingMode.toUpperCase()}
+- TRENDING: Broad appeal, meme-ability, universal hooks, trending phrasing
+- NICHE: Deep community resonance, insider knowledge, cult engagement
+- BOTH: Balanced hybrid
 
-Return ONLY a valid JSON array of 8 objects. No markdown. No text outside the JSON.
+Language: ${language}
+High-Emotion Peaks: ${highlightMode ? 'PRIORITIZE' : 'STANDARD'}
 
-Fields required for each segment:
-- "start": number (exact start time in seconds)
-- "end": number (exact end time in seconds, duration 30-45s)
-- "hook": string (5-10 word high-velocity title)
-- "mp4_caption": string (complete ready-to-post caption with emojis, tags, and CTA)
-- "filename_suggestion": string (SEO-optimized slug)
-- "first_frame_text": string (short 4-8 word "scroll stopper" overlay text)
-- "music_suggestion": string (2026 trending music style)
-- "score": number (1-10 virality rating)
-- "reasoning": string (1-2 sentences on why this segment fits the algorithm)
-- "duration": number (end - start)
+Output STRICT JSON (no markdown, no preamble):
+{
+  "clips": [
+    {
+      "id": 1,
+      "start_time_seconds": number,
+      "end_time_seconds": number,
+      "duration_seconds": number,
+      "virality_score": number,
+      "reason": "string",
+      "hook_title": "string",
+      "social_caption": "string",
+      "first_frame_overlay": "string",
+      "seo_slug": "string",
+      "tags": ["string"],
+      "music_suggestion": "string"
+    }
+  ],
+  "summary": "string",
+  "best_overall_hook": "string"
+}
 
-Strict Rules:
-- Return ONLY JSON.
-- If analysis fails, return [].
-- Targeting: ${targetingMode}
-- High-Emotion Peaks: ${highlightMode ? 'ENABLED' : 'DISABLED'}
-
-Process now.`;
+Prioritize diversity: mix hook styles (question, bold claim, visual tease, story snippet, tip list, controversy, reaction). Ensure timestamps are precise. Segments must be contiguous and non-overlapping where ideal.`;
 
     try {
       const ai = this.getClient();
@@ -84,21 +98,21 @@ Process now.`;
           },
         ],
         config: {
-          temperature: 0.1,
+          temperature: 0.2,
           responseMimeType: "application/json"
         }
       });
 
-      const text = response.text || '[]';
+      const text = response.text || '{}';
       const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
       
-      const segments: ViralSegment[] = JSON.parse(cleanedText);
+      const result: AnalysisResult = JSON.parse(cleanedText);
       
-      if (!Array.isArray(segments)) {
-        throw new Error("Invalid neural response format.");
+      if (!result.clips || !Array.isArray(result.clips)) {
+        throw new Error("Invalid neural response format: missing clips array.");
       }
       
-      return segments;
+      return result;
     } catch (error: any) {
       console.error("Gemini analysis error:", error);
       throw new Error(error.message || "Neural extraction failed.");

@@ -12,8 +12,7 @@ const App: React.FC = () => {
   const [targetingMode, setTargetingMode] = useState<TargetingMode>('Both');
   const [highlightMode, setHighlightMode] = useState<boolean>(true);
   const [analysis, setAnalysis] = useState<AnalysisState>({
-    status: AnalysisStatus.IDLE,
-    segments: []
+    status: AnalysisStatus.IDLE
   });
   
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -45,39 +44,37 @@ const App: React.FC = () => {
     setVideoFile(file);
     const url = URL.createObjectURL(file);
     setVideoUrl(url);
-    setAnalysis({ status: AnalysisStatus.IDLE, segments: [] });
+    setAnalysis({ status: AnalysisStatus.IDLE });
     setPreviewRange(null);
   };
 
   const startAnalysis = async () => {
     if (!videoFile || !geminiServiceRef.current) return;
 
-    setAnalysis({ status: AnalysisStatus.ANALYZING, segments: [] });
+    setAnalysis({ status: AnalysisStatus.ANALYZING });
     
     try {
-      const segments = await geminiServiceRef.current.analyzeVideo(
+      const result = await geminiServiceRef.current.analyzeVideo(
         videoFile, 
         language, 
         targetingMode, 
         highlightMode
       );
-      if (segments.length === 0) {
+      if (!result.clips || result.clips.length === 0) {
         setAnalysis({
           status: AnalysisStatus.ERROR,
-          segments: [],
           error: "Algorithm failed to find high-potential hooks. Try a more dynamic source."
         });
       } else {
         setAnalysis({
           status: AnalysisStatus.COMPLETED,
-          segments: segments
+          result: result
         });
         showNotification("Neural analysis complete. 8 potential bangers extracted.", "success");
       }
     } catch (error: any) {
       setAnalysis({
         status: AnalysisStatus.ERROR,
-        segments: [],
         error: error.message || "Neural extraction engine encountered a protocol error."
       });
       showNotification("Analysis interrupted. Check source codec.", "error");
@@ -110,7 +107,7 @@ const App: React.FC = () => {
         tempVideo.onerror = () => reject(new Error("MP4 stream source failed"));
       });
 
-      tempVideo.currentTime = segment.start;
+      tempVideo.currentTime = segment.start_time_seconds;
       await new Promise((resolve) => { tempVideo.onseeked = resolve; });
 
       // @ts-ignore
@@ -148,7 +145,7 @@ const App: React.FC = () => {
         const a = document.createElement('a');
         a.href = url;
         
-        const baseName = segment.filename_suggestion || `Viral_Clip_${index + 1}`;
+        const baseName = segment.seo_slug || `Viral_Clip_${index + 1}`;
         a.download = `${baseName}.mp4`; 
         
         a.click();
@@ -161,7 +158,7 @@ const App: React.FC = () => {
       recorder.start();
       await tempVideo.play();
 
-      const durationMs = (segment.end - segment.start) * 1000;
+      const durationMs = (segment.end_time_seconds - segment.start_time_seconds) * 1000;
       setTimeout(() => {
         tempVideo.pause();
         recorder.stop();
@@ -411,9 +408,9 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {analysis.status === AnalysisStatus.COMPLETED && (
+        {analysis.status === AnalysisStatus.COMPLETED && analysis.result && (
           <section className="animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 px-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-12 px-4">
               <div>
                 <h2 className="text-5xl font-black mb-4 text-white tracking-tight leading-tight uppercase">Elite Viral Pack</h2>
                 <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Extraction Logic: <span className="text-blue-400">{targetingMode} Growth</span></p>
@@ -424,9 +421,35 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Strategic Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-20 px-4">
+              <div className="lg:col-span-3 glass-card p-8 rounded-[2.5rem] border-blue-500/20 bg-blue-500/5">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <i className="fas fa-brain text-white"></i>
+                  </div>
+                  <h4 className="text-sm font-black uppercase tracking-widest text-blue-400">Strategic Analysis</h4>
+                </div>
+                <p className="text-slate-300 text-lg font-medium leading-relaxed italic">
+                  "{analysis.result.summary}"
+                </p>
+              </div>
+              <div className="glass-card p-8 rounded-[2.5rem] border-purple-500/20 bg-purple-500/5">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                    <i className="fas fa-star text-white"></i>
+                  </div>
+                  <h4 className="text-sm font-black uppercase tracking-widest text-purple-400">Best Hook</h4>
+                </div>
+                <p className="text-slate-300 text-sm font-black uppercase tracking-tight leading-tight">
+                  {analysis.result.best_overall_hook}
+                </p>
+              </div>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-              {analysis.segments.map((segment, idx) => (
+              {analysis.result.clips.map((segment, idx) => (
                 <SegmentCard 
                   key={idx} 
                   segment={segment} 
@@ -449,7 +472,7 @@ const App: React.FC = () => {
             <h2 className="text-4xl font-black mb-4 text-white tracking-tight">Engine Failure</h2>
             <p className="text-slate-500 mb-12 text-lg font-medium leading-relaxed">{analysis.error}</p>
             <button 
-              onClick={() => setAnalysis({ status: AnalysisStatus.IDLE, segments: [] })}
+              onClick={() => setAnalysis({ status: AnalysisStatus.IDLE })}
               className="px-12 py-5 bg-slate-950 hover:bg-slate-900 border border-slate-800 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl active:scale-95"
             >
               Reset Protocol
