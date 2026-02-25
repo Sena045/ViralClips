@@ -3,10 +3,17 @@ import { GoogleGenAI } from "@google/genai";
 import { ViralSegment, TargetingMode } from "../types";
 
 export class GeminiService {
-  private ai: any;
+  private ai: any = null;
 
-  constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  private getClient() {
+    if (!this.ai) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is not defined. Please set it in your environment variables.");
+      }
+      this.ai = new GoogleGenAI({ apiKey });
+    }
+    return this.ai;
   }
 
   private async fileToBase64(file: File): Promise<string> {
@@ -60,7 +67,8 @@ Strict Rules:
 Process now.`;
 
     try {
-      const response = await this.ai.models.generateContent({
+      const ai = this.getClient();
+      const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
           {
