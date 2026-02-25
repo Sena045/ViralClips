@@ -68,7 +68,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onFileSelect, disabled })
       <div className="relative z-10 text-center px-12">
         <h3 className="text-2xl font-black mb-3 text-white tracking-tight">Drop Source Raw Media</h3>
         <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-sm mx-auto">
-          MP4, WebM, or MOV up to 200MB. <br/> Let AI growth experts analyze your flow.
+          MP4, WebM, or MOV up to 15MB. <br/> Let AI growth experts analyze your flow.
         </p>
       </div>
       

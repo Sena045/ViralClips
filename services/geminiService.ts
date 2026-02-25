@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ViralSegment, TargetingMode, AnalysisResult } from "../types";
 
 export class GeminiService {
@@ -56,28 +56,6 @@ Strategic Mode: ${targetingMode.toUpperCase()}
 Language: ${language}
 High-Emotion Peaks: ${highlightMode ? 'PRIORITIZE' : 'STANDARD'}
 
-Output STRICT JSON (no markdown, no preamble):
-{
-  "clips": [
-    {
-      "id": 1,
-      "start_time_seconds": number,
-      "end_time_seconds": number,
-      "duration_seconds": number,
-      "virality_score": number,
-      "reason": "string",
-      "hook_title": "string",
-      "social_caption": "string",
-      "first_frame_overlay": "string",
-      "seo_slug": "string",
-      "tags": ["string"],
-      "music_suggestion": "string"
-    }
-  ],
-  "summary": "string",
-  "best_overall_hook": "string"
-}
-
 Prioritize diversity: mix hook styles (question, bold claim, visual tease, story snippet, tip list, controversy, reaction). Ensure timestamps are precise. Segments must be contiguous and non-overlapping where ideal.`;
 
     try {
@@ -90,7 +68,7 @@ Prioritize diversity: mix hook styles (question, bold claim, visual tease, story
               { text: prompt },
               {
                 inlineData: {
-                  mimeType: videoFile.type,
+                  mimeType: videoFile.type || 'video/mp4',
                   data: base64Data,
                 },
               },
@@ -99,14 +77,48 @@ Prioritize diversity: mix hook styles (question, bold claim, visual tease, story
         ],
         config: {
           temperature: 0.2,
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              clips: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    id: { type: Type.NUMBER },
+                    start_time_seconds: { type: Type.NUMBER },
+                    end_time_seconds: { type: Type.NUMBER },
+                    duration_seconds: { type: Type.NUMBER },
+                    virality_score: { type: Type.NUMBER },
+                    reason: { type: Type.STRING },
+                    hook_title: { type: Type.STRING },
+                    social_caption: { type: Type.STRING },
+                    first_frame_overlay: { type: Type.STRING },
+                    seo_slug: { type: Type.STRING },
+                    tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    music_suggestion: { type: Type.STRING }
+                  },
+                  required: ["id", "start_time_seconds", "end_time_seconds", "hook_title", "social_caption", "virality_score"]
+                }
+              },
+              summary: { type: Type.STRING },
+              best_overall_hook: { type: Type.STRING }
+            },
+            required: ["clips", "summary", "best_overall_hook"]
+          }
         }
       });
 
-      const text = response.text || '{}';
-      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      
-      const result: AnalysisResult = JSON.parse(cleanedText);
+      if (!response.text) {
+        const candidate = response.candidates?.[0];
+        if (candidate?.finishReason === 'SAFETY') {
+          throw new Error("Analysis blocked by safety filters. The video content may be sensitive.");
+        }
+        throw new Error("Neural engine returned an empty response. Try a different video.");
+      }
+
+      const result: AnalysisResult = JSON.parse(response.text);
       
       if (!result.clips || !Array.isArray(result.clips)) {
         throw new Error("Invalid neural response format: missing clips array.");

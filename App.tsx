@@ -37,8 +37,8 @@ const App: React.FC = () => {
   };
 
   const handleFileSelect = (file: File) => {
-    if (file.size > 200 * 1024 * 1024) {
-      showNotification("Source file exceeds 200MB limit for cloud analysis.", "error");
+    if (file.size > 15 * 1024 * 1024) {
+      showNotification("Source file exceeds 15MB limit for direct neural analysis. Please use a smaller clip.", "error");
       return;
     }
     setVideoFile(file);
