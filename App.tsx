@@ -37,8 +37,8 @@ const App: React.FC = () => {
   };
 
   const handleFileSelect = (file: File) => {
-    if (file.size > 15 * 1024 * 1024) {
-      showNotification("Source file exceeds 15MB limit for direct neural analysis. Please use a smaller clip.", "error");
+    if (file.size > 100 * 1024 * 1024) {
+      showNotification("Source file exceeds 100MB limit for neural analysis.", "error");
       return;
     }
     setVideoFile(file);
@@ -422,32 +422,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Strategic Summary */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-20 px-4">
-              <div className="lg:col-span-3 glass-card p-8 rounded-[2.5rem] border-blue-500/20 bg-blue-500/5">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                    <i className="fas fa-brain text-white"></i>
-                  </div>
-                  <h4 className="text-sm font-black uppercase tracking-widest text-blue-400">Strategic Analysis</h4>
-                </div>
-                <p className="text-slate-300 text-lg font-medium leading-relaxed italic">
-                  "{analysis.result.summary}"
-                </p>
-              </div>
-              <div className="glass-card p-8 rounded-[2.5rem] border-purple-500/20 bg-purple-500/5">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
-                    <i className="fas fa-star text-white"></i>
-                  </div>
-                  <h4 className="text-sm font-black uppercase tracking-widest text-purple-400">Best Hook</h4>
-                </div>
-                <p className="text-slate-300 text-sm font-black uppercase tracking-tight leading-tight">
-                  {analysis.result.best_overall_hook}
-                </p>
-              </div>
-            </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
               {analysis.result.clips.map((segment, idx) => (
                 <SegmentCard 

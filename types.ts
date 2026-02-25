@@ -17,8 +17,6 @@ export interface ViralSegment {
 
 export interface AnalysisResult {
   clips: ViralSegment[];
-  summary: string;
-  best_overall_hook: string;
 }
 
 export enum AnalysisStatus {

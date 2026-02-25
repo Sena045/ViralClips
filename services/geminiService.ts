@@ -34,7 +34,34 @@ export class GeminiService {
     targetingMode: TargetingMode,
     highlightMode: boolean
   ): Promise<AnalysisResult> {
-    const base64Data = await this.fileToBase64(videoFile);
+    const ai = this.getClient();
+    
+    // Use File API for all uploads to ensure reliability and support larger files (up to 100MB+)
+    let filePart;
+    try {
+      const uploadResult = await ai.files.upload({
+        file: videoFile,
+        config: {
+          displayName: videoFile.name,
+        },
+      });
+      filePart = {
+        fileData: {
+          fileUri: uploadResult.file.uri,
+          mimeType: uploadResult.file.mimeType,
+        },
+      };
+    } catch (uploadError: any) {
+      console.error("File upload failed, falling back to inlineData:", uploadError);
+      // Fallback to inlineData for smaller files if File API fails
+      const base64Data = await this.fileToBase64(videoFile);
+      filePart = {
+        inlineData: {
+          mimeType: videoFile.type || 'video/mp4',
+          data: base64Data,
+        },
+      };
+    }
     
     const prompt = `You are ViralClips AI, an elite 2026 shorts editor specialized in repurposing video content into high-velocity TikTok/Reels/Shorts clips. You understand current algorithms: prioritize strong hooks in first 3 seconds, emotional peaks, questions/curiosity gaps, fast pacing, relatability, controversy (mild), quotable lines, visual surprises, and self-contained segments that drive loops/re-watches.
 
@@ -59,19 +86,13 @@ High-Emotion Peaks: ${highlightMode ? 'PRIORITIZE' : 'STANDARD'}
 Prioritize diversity: mix hook styles (question, bold claim, visual tease, story snippet, tip list, controversy, reaction). Ensure timestamps are precise. Segments must be contiguous and non-overlapping where ideal.`;
 
     try {
-      const ai = this.getClient();
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
           {
             parts: [
               { text: prompt },
-              {
-                inlineData: {
-                  mimeType: videoFile.type || 'video/mp4',
-                  data: base64Data,
-                },
-              },
+              filePart,
             ],
           },
         ],
@@ -101,11 +122,9 @@ Prioritize diversity: mix hook styles (question, bold claim, visual tease, story
                   },
                   required: ["id", "start_time_seconds", "end_time_seconds", "hook_title", "social_caption", "virality_score"]
                 }
-              },
-              summary: { type: Type.STRING },
-              best_overall_hook: { type: Type.STRING }
+              }
             },
-            required: ["clips", "summary", "best_overall_hook"]
+            required: ["clips"]
           }
         }
       });
