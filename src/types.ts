@@ -24,7 +24,16 @@ export enum AnalysisStatus {
   UPLOADING = 'UPLOADING',
   ANALYZING = 'ANALYZING',
   COMPLETED = 'COMPLETED',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
+  QUEUED = 'QUEUED'
+}
+
+export interface SaaSJob {
+  id: string;
+  status: 'PENDING' | 'UPLOADING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  videoName: string;
+  result?: AnalysisResult;
+  error?: string;
 }
 
 export type TargetingMode = 'Trending' | 'Niche' | 'Both';

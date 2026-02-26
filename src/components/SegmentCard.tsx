@@ -43,7 +43,7 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
         <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center text-center p-8 animate-fade-in border-2 border-blue-500/20 rounded-[2.5rem]">
           <div className="w-16 h-16 border-[5px] border-blue-500/10 border-t-blue-500 rounded-full animate-spin mb-6"></div>
           <h5 className="font-black text-xl mb-2 text-white uppercase tracking-tighter">Encoding MP4</h5>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Applying H.264 profile optimization for 2026 platform standards.</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Applying H.264 profile optimization for 2027 platform standards.</p>
         </div>
       )}
 
@@ -118,9 +118,12 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
         <div className="mt-auto pt-6 border-t border-slate-800/50 flex items-center justify-between">
           <div className="flex flex-col gap-1">
             <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">Neural Stamp</span>
-            <span className="text-[11px] font-mono font-black text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-              {formatTime(segment.start_time_seconds)} — {formatTime(segment.end_time_seconds)}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">NS-{index + 1}</span>
+              <span className="text-[11px] font-mono font-black text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
+                {formatTime(segment.start_time_seconds)} — {formatTime(segment.end_time_seconds)}
+              </span>
+            </div>
           </div>
           
           <button 
