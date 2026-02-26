@@ -12,16 +12,22 @@ export const loadRazorpay = (options: any) => {
 };
 
 export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credits: number) => void) => {
+  const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  if (!key) {
+    alert("Razorpay Key ID is missing. Please set VITE_RAZORPAY_KEY_ID in your environment variables.");
+    return;
+  }
+
   const amount = plan === 'pro' ? 2900 : 9900; // In paise
   const credits = plan === 'pro' ? 50 : 250;
 
   const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key: key,
     amount: amount,
     currency: "USD",
     name: "ViralClips AI",
     description: `${plan.toUpperCase()} Plan Upgrade`,
-    image: "https://ais-dev-z4ys3v6inup4ik63aw54gu-350873585245.asia-southeast1.run.app/favicon.ico",
+    image: `${window.location.origin}/favicon.ico`,
     handler: async function (response: any) {
       // In a real app, you would verify the payment on the server
       console.log("Payment successful", response.razorpay_payment_id);
