@@ -21,12 +21,23 @@ export const loadRazorpay = (options: any) => {
 };
 
 export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credits: number) => void) => {
-  const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  const rawKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  const key = rawKey ? rawKey.trim() : null;
   
+  console.log("ViralClips AI: Initializing Upgrade Pipeline...");
+  console.log("Plan:", plan);
+  console.log("Key Detected:", key ? "YES (starts with " + key.substring(0, 8) + "...)" : "NO");
+
   // MOCK MODE: If key is missing or set to 'MOCK', provide a simulated success path for testing
-  if (!key || key === 'MOCK') {
+  if (!key || key === 'MOCK' || key === 'rzp_test_placeholder') {
     console.warn("Razorpay Key missing or set to MOCK. Entering simulated payment mode.");
-    const confirmMock = window.confirm(`[TEST MODE] Simulate successful ${plan.toUpperCase()} payment? \n\n(To use real Razorpay, set VITE_RAZORPAY_KEY_ID in environment variables)`);
+    
+    const confirmMock = window.confirm(
+      `[SIMULATED PAYMENT MODE]\n\n` +
+      `No valid Razorpay Key detected (VITE_RAZORPAY_KEY_ID).\n` +
+      `Would you like to simulate a successful ${plan.toUpperCase()} upgrade for testing?\n\n` +
+      `Note: To use real Razorpay, add VITE_RAZORPAY_KEY_ID to your environment variables.`
+    );
     
     if (confirmMock) {
       const credits = plan === 'pro' ? 50 : 250;
@@ -42,22 +53,23 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credit
         const data = await res.json();
         onSuccess(data.credits);
       } catch (e) {
-        alert("Mock upgrade failed to sync with server.");
+        alert("Mock upgrade failed to sync with server. Check console for errors.");
+        console.error("Mock upgrade error:", e);
       }
     }
     return;
   }
 
   const amount = plan === 'pro' ? 249900 : 799900; // In paise (e.g., 2499 INR)
-  const credits = plan === 'pro' ? 50 : 250;
-
+  
   const options = {
     key: key,
     amount: amount,
-    currency: "INR", // Changed to INR for maximum compatibility with Razorpay accounts
+    currency: "INR",
     name: "ViralClips AI",
     description: `${plan.toUpperCase()} Plan Upgrade`,
-    image: `${window.location.origin}/favicon.ico`,
+    // Use a reliable placeholder image if favicon is missing
+    image: "https://cdn-icons-png.flaticon.com/512/1162/1162456.png", 
     handler: async function (response: any) {
       console.log("Razorpay payment successful", response.razorpay_payment_id);
       
@@ -74,6 +86,7 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credit
         onSuccess(data.credits);
       } catch (e) {
         alert("Payment successful but failed to sync credits. Please contact support with ID: " + response.razorpay_payment_id);
+        console.error("Sync error:", e);
       }
     },
     prefill: {
@@ -93,6 +106,7 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credit
   try {
     await loadRazorpay(options);
   } catch (err: any) {
-    alert(err.message || "Failed to initialize Razorpay.");
+    console.error("Razorpay Initialization Error:", err);
+    alert(`Failed to initialize Razorpay: ${err.message}\n\nCheck console for more details.`);
   }
 };

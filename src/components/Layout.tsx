@@ -12,23 +12,20 @@ const Layout: React.FC<LayoutProps> = ({ children, userCredits, onShowPricing })
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: 'fa-house' },
-    { name: 'My Clips', path: '/clips', icon: 'fa-clapperboard' },
     { name: 'Pricing', path: '/pricing', icon: 'fa-tags' },
-    { name: 'Settings', path: '/settings', icon: 'fa-gear' },
   ];
 
   return (
     <div className="min-h-screen bg-[#020617] pb-24 overflow-x-hidden selection:bg-blue-500/30 selection:text-blue-200">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 px-8 py-5 bg-slate-950/70 backdrop-blur-2xl border-b border-slate-800/40 flex justify-between items-center">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-600/30 ring-1 ring-white/10">
-              <i className="fas fa-bolt-lightning text-white text-2xl"></i>
+      <nav className="sticky top-0 z-50 px-4 md:px-8 py-4 md:py-5 bg-slate-950/70 backdrop-blur-2xl border-b border-slate-800/40 flex justify-between items-center">
+        <div className="flex items-center gap-4 md:gap-8">
+          <Link to="/" className="flex items-center gap-3 md:gap-4">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-600/30 ring-1 ring-white/10">
+              <i className="fas fa-bolt-lightning text-white text-xl md:text-2xl"></i>
             </div>
             <div>
-              <span className="text-2xl font-black tracking-tighter text-white">VIRAL<span className="text-blue-500">CLIPS</span></span>
-              <span className="block text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] -mt-1">Neural Engine 2.0</span>
+              <span className="text-xl md:text-2xl font-black tracking-tighter text-white">VIRAL<span className="text-blue-500">CLIPS</span></span>
             </div>
           </Link>
 
@@ -50,20 +47,33 @@ const Layout: React.FC<LayoutProps> = ({ children, userCredits, onShowPricing })
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3">
-            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Credits: {userCredits}</span>
+        <div className="flex items-center gap-3 md:gap-6">
+          <div className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2 md:gap-3">
+            <span className="text-[9px] md:text-[10px] font-black text-blue-400 uppercase tracking-widest">Credits: {userCredits}</span>
             <button 
               onClick={onShowPricing}
-              className="text-[9px] font-black bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-500 transition-all uppercase"
+              className="text-[8px] md:text-[9px] font-black bg-blue-600 text-white px-2 md:px-3 py-1 rounded-lg hover:bg-blue-500 transition-all uppercase"
             >
               Get More
             </button>
           </div>
-          <button className="hidden md:flex px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all items-center gap-3">
-            <i className="fab fa-discord text-indigo-400 text-base"></i> Creator Lab
-          </button>
         </div>
+      </nav>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-slate-950/80 backdrop-blur-3xl border-t border-slate-800/50 px-6 py-4 flex justify-around items-center">
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex flex-col items-center gap-1 transition-all ${
+              location.pathname === item.path ? 'text-blue-500' : 'text-slate-500'
+            }`}
+          >
+            <i className={`fas ${item.icon} text-lg`}></i>
+            <span className="text-[9px] font-black uppercase tracking-widest">{item.name}</span>
+          </Link>
+        ))}
       </nav>
 
       <main>

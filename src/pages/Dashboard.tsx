@@ -283,23 +283,23 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-8 pt-20">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 md:pt-20">
       {/* Hero */}
-      <section className="text-center mb-24 animate-fade-in">
-        <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.25em] mb-10 shadow-lg shadow-blue-500/5">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+      <section className="text-center mb-16 md:mb-24 animate-fade-in">
+        <div className="inline-flex items-center gap-3 px-4 md:px-6 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] md:text-[10px] font-black uppercase tracking-[0.25em] mb-6 md:mb-10 shadow-lg shadow-blue-500/5">
+          <span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
           Neural Stamp: 260226 // H.264 High Profile
         </div>
-        <h1 className="text-6xl md:text-[6.5rem] font-black mb-10 leading-[0.85] tracking-tight text-white">
+        <h1 className="text-4xl md:text-6xl lg:text-[6.5rem] font-black mb-6 md:mb-10 leading-[0.9] md:leading-[0.85] tracking-tight text-white">
           Viral <span className="gradient-text">H.264</span> Logic.
         </h1>
-        <p className="text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
+        <p className="text-lg md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium px-4">
           Extract elite 30-45s segments optimized for 2027 social algorithms with guaranteed platform compatibility.
         </p>
       </section>
 
       {/* Action Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-32">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 mb-20 md:mb-32">
         <div className="lg:col-span-2">
           <VideoUploader 
             onFileSelect={handleFileSelect} 
@@ -307,20 +307,20 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
           />
         </div>
         
-        <div className="space-y-8">
-          <div className="glass-card p-10 rounded-[3rem] h-full flex flex-col justify-between border-slate-700/30">
-            <div className="space-y-10">
+        <div className="space-y-6 md:space-y-8">
+          <div className="glass-card p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] h-full flex flex-col justify-between border-slate-700/30">
+            <div className="space-y-8 md:space-y-10">
               <div>
-                <h3 className="text-2xl font-black mb-1 tracking-tight uppercase">Growth Engine</h3>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-8">Neural extraction parameters</p>
+                <h3 className="text-xl md:text-2xl font-black mb-1 tracking-tight uppercase">Growth Engine</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6 md:mb-8">Neural extraction parameters</p>
                 
-                <div className="space-y-6">
+                <div className="space-y-5 md:space-y-6">
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3 ml-1">Native Language</label>
+                    <label className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 md:mb-3 ml-1">Native Language</label>
                     <select 
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-sm font-black focus:ring-2 focus:ring-blue-600 outline-none transition-all text-white"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-black focus:ring-2 focus:ring-blue-600 outline-none transition-all text-white"
                       disabled={analysis.status === AnalysisStatus.ANALYZING}
                     >
                       <option>English</option>
@@ -333,13 +333,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3 ml-1">Algorithmic Focus</label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <label className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 md:mb-3 ml-1">Algorithmic Focus</label>
+                    <div className="grid grid-cols-3 gap-2 md:gap-3">
                       {(['Trending', 'Niche', 'Both'] as TargetingMode[]).map(mode => (
                         <button
                           key={mode}
                           onClick={() => setTargetingMode(mode)}
-                          className={`py-3 rounded-2xl text-[10px] font-black transition-all border ${
+                          className={`py-2 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black transition-all border ${
                             targetingMode === mode 
                               ? 'bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-500/20' 
                               : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
@@ -351,31 +351,31 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between p-5 bg-slate-950 border border-slate-800 rounded-3xl">
+                  <div className="flex items-center justify-between p-4 md:p-5 bg-slate-950 border border-slate-800 rounded-2xl md:rounded-3xl">
                     <div>
-                      <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Retention Peaks</div>
-                      <div className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">H.264 Optimized Cuts</div>
+                      <div className="text-[9px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest">Retention Peaks</div>
+                      <div className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">H.264 Optimized Cuts</div>
                     </div>
                     <button 
                       onClick={() => setHighlightMode(!highlightMode)}
-                      className={`w-14 h-7 rounded-full p-1.5 transition-all duration-300 ${highlightMode ? 'bg-blue-600' : 'bg-slate-800'}`}
+                      className={`w-12 md:w-14 h-6 md:h-7 rounded-full p-1 md:p-1.5 transition-all duration-300 ${highlightMode ? 'bg-blue-600' : 'bg-slate-800'}`}
                     >
-                      <div className={`w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 ${highlightMode ? 'translate-x-7' : 'translate-x-0'}`}></div>
+                      <div className={`w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 ${highlightMode ? 'translate-x-6 md:translate-x-7' : 'translate-x-0'}`}></div>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-14 pt-10 border-t border-slate-800/50">
+            <div className="mt-10 md:mt-14 pt-8 md:pt-10 border-t border-slate-800/50">
               {videoFile && (
-                <div className="mb-8 bg-slate-950/60 p-5 rounded-3xl flex items-center gap-5 border border-slate-800/60 ring-1 ring-white/5">
-                  <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-blue-500 shadow-inner">
-                    <i className="fas fa-file-video text-2xl"></i>
+                <div className="mb-6 md:mb-8 bg-slate-950/60 p-4 md:p-5 rounded-2xl md:rounded-3xl flex items-center gap-4 md:gap-5 border border-slate-800/60 ring-1 ring-white/5">
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-slate-900 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 shadow-inner">
+                    <i className="fas fa-file-video text-xl md:text-2xl"></i>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-black truncate text-white uppercase tracking-tight">{videoFile.name}</div>
-                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB • Source Ready</div>
+                    <div className="text-xs md:text-sm font-black truncate text-white uppercase tracking-tight">{videoFile.name}</div>
+                    <div className="text-[9px] md:text-[10px] text-slate-500 font-black uppercase tracking-widest">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB • Source Ready</div>
                   </div>
                 </div>
               )}
@@ -383,7 +383,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
               <button 
                 onClick={startAnalysis}
                 disabled={!videoFile || analysis.status === AnalysisStatus.ANALYZING}
-                className={`w-full py-5 rounded-[1.5rem] font-black flex items-center justify-center gap-4 transition-all tracking-tight text-base uppercase ${
+                className={`w-full py-4 md:py-5 rounded-xl md:rounded-[1.5rem] font-black flex items-center justify-center gap-3 md:gap-4 transition-all tracking-tight text-sm md:text-base uppercase ${
                   analysis.status === AnalysisStatus.ANALYZING
                     ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                     : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_100%] hover:bg-[100%_0] text-white hover:scale-[1.02] active:scale-95 shadow-2xl shadow-blue-600/30'
@@ -391,7 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
               >
                 {analysis.status === AnalysisStatus.ANALYZING ? (
                   <>
-                    <div className="w-5 h-5 border-[3px] border-slate-600 border-t-white rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 md:w-5 md:h-5 border-[2px] md:border-[3px] border-slate-600 border-t-white rounded-full animate-spin"></div>
                     Encoding Strategy...
                   </>
                 ) : (
@@ -407,37 +407,37 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
       </div>
 
       {videoUrl && (
-        <section className="mb-32 animate-fade-in">
+        <section className="mb-20 md:mb-32 animate-fade-in">
           <div className="max-w-5xl mx-auto relative group">
-            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-[3.5rem] blur-2xl opacity-10 group-hover:opacity-25 transition duration-1000"></div>
-            <div className="relative glass-card p-3 rounded-[3.5rem] overflow-hidden border-slate-700/50 shadow-2xl">
+            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-[2rem] md:rounded-[3.5rem] blur-2xl opacity-10 group-hover:opacity-25 transition duration-1000"></div>
+            <div className="relative glass-card p-2 md:p-3 rounded-[2rem] md:rounded-[3.5rem] overflow-hidden border-slate-700/50 shadow-2xl">
                {/* Neural Stamp Overlay */}
-               <div className="absolute top-10 right-10 z-30 pointer-events-none animate-fade-in">
-                <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex flex-col items-end shadow-2xl">
-                  <span className="text-[8px] font-black text-blue-400 uppercase tracking-[0.3em] mb-1">Neural Stamp</span>
-                  <span className="text-xs font-mono font-black text-white tracking-widest">{getNeuralStamp()}</span>
+               <div className="absolute top-4 md:top-10 right-4 md:right-10 z-30 pointer-events-none animate-fade-in">
+                <div className="bg-black/40 backdrop-blur-md px-3 md:px-6 py-1.5 md:py-3 rounded-xl md:rounded-2xl border border-white/10 flex flex-col items-end shadow-2xl">
+                  <span className="text-[6px] md:text-[8px] font-black text-blue-400 uppercase tracking-[0.3em] mb-0.5 md:mb-1">Neural Stamp</span>
+                  <span className="text-[10px] md:text-xs font-mono font-black text-white tracking-widest">{getNeuralStamp()}</span>
                 </div>
               </div>
 
                <video 
                 ref={videoPlayerRef}
                 src={videoUrl} 
-                className="w-full h-auto rounded-[2.8rem] bg-black shadow-2xl ring-1 ring-white/10"
+                className="w-full h-auto rounded-[1.8rem] md:rounded-[2.8rem] bg-black shadow-2xl ring-1 ring-white/10"
                 controls
                 playsInline
               />
               {previewRange && (
-                <div className="mt-6 flex items-center justify-between px-8 py-5 bg-blue-600/5 rounded-3xl border border-blue-500/10">
-                  <div className="flex items-center gap-5">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]"></div>
-                    <span className="text-[12px] font-black text-blue-400 uppercase tracking-[0.2em]">Neural Loop Active</span>
-                    <span className="text-sm font-black font-mono bg-slate-950 px-5 py-2 rounded-xl border border-slate-800 text-white shadow-inner">
+                <div className="mt-4 md:mt-6 flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-8 py-4 md:py-5 bg-blue-600/5 rounded-2xl md:rounded-3xl border border-blue-500/10">
+                  <div className="flex items-center gap-3 md:gap-5">
+                    <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]"></div>
+                    <span className="text-[10px] md:text-[12px] font-black text-blue-400 uppercase tracking-[0.2em]">Neural Loop Active</span>
+                    <span className="text-xs md:text-sm font-black font-mono bg-slate-950 px-3 md:px-5 py-1.5 md:py-2 rounded-lg md:rounded-xl border border-slate-800 text-white shadow-inner">
                       {formatTime(previewRange.start)} — {formatTime(previewRange.end)}
                     </span>
                   </div>
                   <button 
                     onClick={() => setPreviewRange(null)}
-                    className="text-[10px] font-black text-slate-500 hover:text-white transition-colors flex items-center gap-3 uppercase tracking-widest bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-800"
+                    className="w-full md:w-auto text-[9px] md:text-[10px] font-black text-slate-500 hover:text-white transition-colors flex items-center justify-center gap-2 md:gap-3 uppercase tracking-widest bg-slate-900/50 px-4 py-2 rounded-lg md:rounded-xl border border-slate-800"
                   >
                     Reset Player
                   </button>
@@ -449,34 +449,34 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
       )}
 
       {analysis.status === AnalysisStatus.ANALYZING && (
-        <div className="text-center py-32 animate-fade-in relative">
-          <div className="w-36 h-36 mx-auto mb-12 relative">
-            <div className="absolute inset-0 rounded-full border-[10px] border-blue-500/5 border-t-blue-500 animate-spin"></div>
-            <div className="absolute inset-6 rounded-full border-[10px] border-indigo-500/5 border-b-indigo-500 animate-spin-reverse" style={{animationDuration: '3s'}}></div>
+        <div className="text-center py-16 md:py-32 animate-fade-in relative">
+          <div className="w-24 h-24 md:w-36 md:h-36 mx-auto mb-8 md:mb-12 relative">
+            <div className="absolute inset-0 rounded-full border-[6px] md:border-[10px] border-blue-500/5 border-t-blue-500 animate-spin"></div>
+            <div className="absolute inset-4 md:inset-6 rounded-full border-[6px] md:border-[10px] border-indigo-500/5 border-b-indigo-500 animate-spin-reverse" style={{animationDuration: '3s'}}></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <i className="fas fa-brain text-5xl text-white pulse-ring opacity-80"></i>
+              <i className="fas fa-brain text-3xl md:text-5xl text-white pulse-ring opacity-80"></i>
             </div>
           </div>
-          <h2 className="text-5xl font-black mb-6 text-white tracking-tight uppercase">Strategic Assembly</h2>
-          <p className="text-slate-500 text-xl font-medium max-w-xl mx-auto leading-relaxed italic">"{loadingMessages[loadingMsgIdx]}"</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-4 md:mb-6 text-white tracking-tight uppercase">Strategic Assembly</h2>
+          <p className="text-slate-500 text-base md:text-xl font-medium max-w-xl mx-auto leading-relaxed italic px-4">"{loadingMessages[loadingMsgIdx]}"</p>
         </div>
       )}
 
       {analysis.status === AnalysisStatus.COMPLETED && analysis.result && (
-        <section className="animate-fade-in">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-12 px-4">
+        <section className="animate-fade-in pb-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-10 mb-10 md:mb-12 px-2 md:px-4">
             <div>
-              <h2 className="text-5xl font-black mb-4 text-white tracking-tight leading-tight uppercase">Elite Viral Pack</h2>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Extraction Logic: <span className="text-blue-400">{targetingMode} Growth</span></p>
+              <h2 className="text-3xl md:text-5xl font-black mb-3 md:mb-4 text-white tracking-tight leading-tight uppercase">Elite Viral Pack</h2>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] md:text-xs">Extraction Logic: <span className="text-blue-400">{targetingMode} Growth</span></p>
             </div>
-            <div className="flex items-center gap-5">
-              <div className="px-6 py-3 bg-slate-900/50 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                8 H.264 CANDIDATES <span className="text-slate-600 mx-2">|</span> 2027 OPTIMIZED
+            <div className="flex items-center gap-4 md:gap-5">
+              <div className="px-4 md:px-6 py-2 md:py-3 bg-slate-900/50 border border-slate-800 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {analysis.result.clips.length} H.264 CANDIDATES <span className="text-slate-600 mx-2">|</span> 2027 OPTIMIZED
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
             {analysis.result.clips.map((segment, idx) => (
               <SegmentCard 
                 key={idx} 
@@ -512,16 +512,16 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
       )}
 
       {analysis.status === AnalysisStatus.IDLE && !videoFile && (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-20 pb-32">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mt-10 md:mt-20 pb-20 md:pb-32">
           {[
             {icon: 'fa-microchip', color: 'text-blue-500', title: 'H.264 Neural Engine', desc: 'Advanced frame evaluation for high-profile MP4 delivery.'},
             {icon: 'fa-chart-line', color: 'text-indigo-500', title: '2027 Viral Propensity', desc: 'Predictive modeling based on upcoming platform retention standards.'},
             {icon: 'fa-wand-sparkles', color: 'text-purple-500', title: 'Automated Meta', desc: 'Instant scroll-stopping captions optimized for AAC audio-visual flow.'}
           ].map((f, i) => (
-            <div key={i} className="glass-card p-12 rounded-[3.5rem] border-slate-800/40 hover:bg-white/5 transition-all group shadow-xl">
-              <div className={`${f.color} mb-8 transition-transform group-hover:scale-110 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]`}><i className={`fas ${f.icon} text-5xl`}></i></div>
-              <h4 className="font-black text-2xl mb-5 text-white tracking-tight uppercase">{f.title}</h4>
-              <p className="text-slate-500 text-base leading-relaxed font-medium">{f.desc}</p>
+            <div key={i} className="glass-card p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border-slate-800/40 hover:bg-white/5 transition-all group shadow-xl">
+              <div className={`${f.color} mb-6 md:mb-8 transition-transform group-hover:scale-110 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]`}><i className={`fas ${f.icon} text-4xl md:text-5xl`}></i></div>
+              <h4 className="font-black text-xl md:text-2xl mb-4 md:mb-5 text-white tracking-tight uppercase">{f.title}</h4>
+              <p className="text-slate-500 text-sm md:text-base leading-relaxed font-medium">{f.desc}</p>
             </div>
           ))}
         </section>

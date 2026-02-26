@@ -115,12 +115,12 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
           </div>
         </div>
         
-        <div className="mt-auto pt-6 border-t border-slate-800/50 flex items-center justify-between">
-          <div className="flex flex-col gap-1">
+        <div className="mt-auto pt-6 border-t border-slate-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex flex-col gap-1 w-full sm:w-auto">
             <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">Neural Stamp</span>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">NS-{index + 1}</span>
-              <span className="text-[11px] font-mono font-black text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
+              <span className="text-[11px] font-mono font-black text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800 flex-1 sm:flex-none text-center">
                 {formatTime(segment.start_time_seconds)} — {formatTime(segment.end_time_seconds)}
               </span>
             </div>
@@ -129,7 +129,7 @@ const SegmentCard: React.FC<SegmentCardProps> = ({ segment, index, onPreview, on
           <button 
             disabled={isDownloading}
             onClick={() => onDownload(segment, index)}
-            className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white hover:bg-blue-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 sm:py-3 bg-blue-600 text-white hover:bg-blue-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
           >
             <i className="fas fa-file-export text-sm"></i>
             MP4 Export
