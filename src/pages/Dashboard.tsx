@@ -3,16 +3,18 @@ import { AnalysisStatus, AnalysisState, ViralSegment, TargetingMode, SaaSJob } f
 import VideoUploader from '../components/VideoUploader';
 import SegmentCard from '../components/SegmentCard';
 import { analyzeVideoMetadata } from '../services/geminiService';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DashboardProps {
   userCredits: number;
   userPlan: 'free' | 'pro' | 'agency';
-  onUpdateCredits: (credits: number) => void;
+  onUpdateCredits: () => void;
   onShowPricing: () => void;
   showNotification: (message: string, type: 'success' | 'error') => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCredits, onShowPricing, showNotification }) => {
+  const { token } = useAuth();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
@@ -73,7 +75,10 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
     try {
       const urlRes = await fetch("/api/jobs/upload-url", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ fileName: videoFile.name, fileSize: videoFile.size })
       });
       
@@ -84,13 +89,15 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
 
       if (!urlRes.ok) throw new Error("Failed to get upload authorization");
       const { jobId, uploadUrl, creditsRemaining, isCached, message } = await urlRes.json();
-      onUpdateCredits(creditsRemaining);
+      onUpdateCredits();
 
       if (isCached) {
         setAnalysis({ status: AnalysisStatus.ANALYZING });
         showNotification(message || "Instant result from neural cache!", "success");
         
-        const jobRes = await fetch(`/api/jobs/${jobId}`);
+        const jobRes = await fetch(`/api/jobs/${jobId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
         const job = await jobRes.json();
         
         setAnalysis({
@@ -116,7 +123,10 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
         // SYNC WITH BACKEND
         await fetch(`/api/jobs/${jobId}/complete`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ result })
         });
 

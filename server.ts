@@ -1,13 +1,51 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { createServer as createViteServer } from "vite";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 import { GoogleGenAI } from "@google/genai";
 import * as dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import * as admin from "firebase-admin";
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const JWT_SECRET = process.env.JWT_SECRET || "elite-shorts-secret-key-2024";
+
+// Initialize Firebase Admin
+let db: admin.firestore.Firestore | null = null;
+try {
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      }),
+    });
+    db = admin.firestore();
+    console.log("Firebase Admin initialized successfully.");
+  } else {
+    console.warn("Firebase environment variables missing. Falling back to in-memory storage.");
+  }
+} catch (error) {
+  console.error("Failed to initialize Firebase Admin:", error);
+}
+
 // Types for our SaaS Job System
+interface User {
+  id: string;
+  email: string;
+  passwordHash: string;
+  plan: 'free' | 'pro' | 'agency';
+  credits: number;
+  createdAt: number;
+}
 interface Job {
   id: string;
   status: 'PENDING' | 'UPLOADING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
@@ -19,13 +57,88 @@ interface Job {
 }
 
 const jobs = new Map<string, Job>();
-// Simple Result Cache: Map<FileHash, AnalysisResult>
-const resultCache = new Map<string, any>();
 
-// Simulated Database for SaaS Credits
-const userCredits = new Map<string, number>();
-const userPlans = new Map<string, 'free' | 'pro' | 'agency'>();
+// Simple Result Cache: Map<FileHash, AnalysisResult> (Fallback)
+const resultCacheFallback = new Map<string, any>();
+
+// Helper to get cached result
+async function getCachedResult(hash: string): Promise<any | null> {
+  if (db) {
+    const cacheDoc = await db.collection('cache').doc(hash).get();
+    return cacheDoc.exists ? cacheDoc.data()?.result : null;
+  }
+  return resultCacheFallback.get(hash) || null;
+}
+
+// Helper to save result to cache
+async function saveToCache(hash: string, result: any): Promise<void> {
+  if (db) {
+    await db.collection('cache').doc(hash).set({ result, createdAt: Date.now() });
+  } else {
+    resultCacheFallback.set(hash, result);
+  }
+}
+
+// Simulated Database for SaaS Users (Fallback)
+const usersFallback = new Map<string, User>();
 const DEFAULT_FREE_CREDITS = 3;
+
+// Helper to get user from Firestore or Fallback
+async function getUser(userId: string): Promise<User | null> {
+  if (db) {
+    const userDoc = await db.collection('users').doc(userId).get();
+    return userDoc.exists ? (userDoc.data() as User) : null;
+  }
+  return usersFallback.get(userId) || null;
+}
+
+// Helper to save user to Firestore or Fallback
+async function saveUser(user: User): Promise<void> {
+  if (db) {
+    await db.collection('users').doc(user.id).set(user);
+  } else {
+    usersFallback.set(user.id, user);
+  }
+}
+
+// Helper to find user by email
+async function getUserByEmail(email: string): Promise<User | null> {
+  if (db) {
+    const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+    if (snapshot.empty) return null;
+    return snapshot.docs[0].data() as User;
+  }
+  for (const user of usersFallback.values()) {
+    if (user.email === email) return user;
+  }
+  return null;
+}
+
+// Middleware to protect routes
+const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const idToken = authHeader.split(" ")[1];
+  try {
+    if (db) {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      (req as any).userId = decodedToken.uid;
+      (req as any).email = decodedToken.email;
+      next();
+    } else {
+      // Fallback for development without Firebase
+      const decoded = jwt.verify(idToken, JWT_SECRET) as { userId: string };
+      (req as any).userId = decoded.userId;
+      next();
+    }
+  } catch (error) {
+    console.error("Auth error:", error);
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
 
 /**
  * Helper to generate a simple hash for a video
@@ -45,36 +158,53 @@ async function startServer() {
 
   /**
    * 0. Get User Profile (Credits)
+   * This route also handles profile creation for new Firebase users
    */
-  app.get("/api/user/profile", (req, res) => {
-    const userId = "demo-user"; 
-    if (!userCredits.has(userId)) {
-      userCredits.set(userId, DEFAULT_FREE_CREDITS);
-      userPlans.set(userId, 'free');
+  app.get("/api/user/profile", authenticate, async (req, res) => {
+    const userId = (req as any).userId;
+    const email = (req as any).email;
+    
+    let user = await getUser(userId);
+    
+    // If user doesn't exist in our DB but is authenticated via Firebase, create profile
+    if (!user && email) {
+      user = {
+        id: userId,
+        email,
+        passwordHash: "", // Not needed for Firebase users
+        plan: 'free',
+        credits: DEFAULT_FREE_CREDITS,
+        createdAt: Date.now()
+      };
+      await saveUser(user);
     }
+    
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
     res.json({
       id: userId,
-      credits: userCredits.get(userId),
-      plan: userPlans.get(userId)
+      email: user.email,
+      credits: user.credits,
+      plan: user.plan
     });
   });
 
   /**
    * 1. Request a Presigned URL for Upload
    */
-  app.post("/api/jobs/upload-url", (req, res) => {
-    const userId = "demo-user";
-    if (!userCredits.has(userId)) {
-      userCredits.set(userId, DEFAULT_FREE_CREDITS);
-    }
+  app.post("/api/jobs/upload-url", authenticate, async (req, res) => {
+    const userId = (req as any).userId;
+    const user = await getUser(userId);
+    
+    if (!user) return res.status(404).json({ error: "User not found" });
     
     const { fileName, fileSize } = req.body;
     const videoHash = getVideoHash(fileName, fileSize);
     
     // CHECK CACHE FIRST
-    if (resultCache.has(videoHash)) {
+    const cachedResult = await getCachedResult(videoHash);
+    if (cachedResult) {
       const jobId = uuidv4();
-      const cachedResult = resultCache.get(videoHash);
       
       const job: Job = {
         id: jobId,
@@ -90,14 +220,13 @@ async function startServer() {
       return res.json({
         jobId,
         isCached: true,
-        creditsRemaining: userCredits.get(userId),
+        creditsRemaining: user.credits,
         message: "Instant analysis: Result found in neural cache (0 credits used)."
       });
     }
 
     // NO CACHE - CHECK CREDITS
-    const currentCredits = userCredits.get(userId) || 0;
-    if (currentCredits <= 0) {
+    if (user.credits <= 0) {
       return res.status(403).json({ 
         error: "Insufficient credits", 
         code: "OUT_OF_CREDITS" 
@@ -114,7 +243,8 @@ async function startServer() {
     };
     
     jobs.set(jobId, job);
-    userCredits.set(userId, currentCredits - 1);
+    user.credits -= 1;
+    await saveUser(user);
 
     const uploadUrl = `/api/mock-upload/${jobId}`;
     
@@ -122,7 +252,7 @@ async function startServer() {
       jobId,
       uploadUrl,
       isCached: false,
-      creditsRemaining: userCredits.get(userId)
+      creditsRemaining: user.credits
     });
   });
 
@@ -173,9 +303,33 @@ async function startServer() {
     
     // STORE IN CACHE
     const videoHash = getVideoHash(job.videoName, job.videoSize);
-    resultCache.set(videoHash, job.result);
+    saveToCache(videoHash, job.result);
     
     res.json({ success: true });
+  });
+
+  // Upgrade credits after payment
+  app.post("/api/user/upgrade", authenticate, async (req, res) => {
+    const userId = (req as any).userId;
+    const { plan } = req.body;
+    const user = await getUser(userId);
+    
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    const creditsToAdd = plan === 'pro' ? 50 : 250;
+    user.credits += creditsToAdd;
+    user.plan = plan;
+    
+    await saveUser(user);
+    
+    console.log(`Upgrade successful for ${userId}: ${plan}. New credits: ${user.credits}`);
+    
+    res.json({ 
+      success: true, 
+      credits: user.credits,
+      plan: plan,
+      message: `Successfully upgraded to ${plan.toUpperCase()}! ${creditsToAdd} credits added.`
+    });
   });
 
   // --- VITE MIDDLEWARE ---
@@ -188,28 +342,13 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     app.use(express.static("dist"));
+    // SPA Fallback for production
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(__dirname, "dist", "index.html"));
+    });
   }
 
-  // Upgrade credits after payment
-app.post("/api/user/upgrade", (req, res) => {
-  const userId = "demo-user";
-  const { plan } = req.body;
-  const creditsToAdd = plan === 'pro' ? 50 : 250;
-  
-  const currentCredits = userCredits.get(userId) || 0;
-  const newCredits = currentCredits + creditsToAdd;
-  userCredits.set(userId, newCredits);
-  userPlans.set(userId, plan);
-  
-  res.json({ 
-    success: true, 
-    credits: newCredits,
-    plan: plan,
-    message: `Successfully upgraded to ${plan.toUpperCase()}! ${creditsToAdd} credits added.`
-  });
-});
-
-app.listen(PORT, "0.0.0.0", () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`SaaS Backend running at http://localhost:${PORT}`);
   });
 }

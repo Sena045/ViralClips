@@ -4,10 +4,13 @@ import { Link, useLocation } from 'react-router-dom';
 interface LayoutProps {
   children: React.ReactNode;
   userCredits: number;
+  userPlan: string;
+  userId: string;
   onShowPricing: () => void;
+  onLogout: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, userCredits, onShowPricing }) => {
+const Layout: React.FC<LayoutProps> = ({ children, userCredits, userPlan, userId, onShowPricing, onLogout }) => {
   const location = useLocation();
 
   const navItems = [
@@ -48,6 +51,22 @@ const Layout: React.FC<LayoutProps> = ({ children, userCredits, onShowPricing })
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
+          {/* User Profile & Logout */}
+          <div className="hidden sm:flex items-center gap-3 bg-slate-900/50 border border-slate-800 px-4 py-2 rounded-xl">
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active Pilot</span>
+              <span className="text-[10px] font-bold text-slate-300 truncate max-w-[120px]">{userId}</span>
+            </div>
+            <div className="w-[1px] h-6 bg-slate-800 mx-1"></div>
+            <button 
+              onClick={onLogout}
+              className="text-slate-500 hover:text-rose-400 transition-colors"
+              title="Logout"
+            >
+              <i className="fas fa-power-off text-sm"></i>
+            </button>
+          </div>
+
           <div className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2 md:gap-3">
             <span className="text-[9px] md:text-[10px] font-black text-blue-400 uppercase tracking-widest">Credits: {userCredits}</span>
             <button 
