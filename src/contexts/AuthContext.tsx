@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     if (!auth) {
-      alert("Firebase not configured. Google login unavailable.");
+      alert("Firebase is not fully configured. Please ensure you have added all VITE_FIREBASE_* secrets in the Secrets panel and restarted the dev server.");
       return;
     }
     await signInWithPopup(auth, googleProvider);
@@ -135,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const forgotPassword = async (email: string) => {
     if (!auth) {
-      alert("Firebase not configured. Password reset unavailable.");
+      alert("Firebase is not fully configured. Please ensure you have added all VITE_FIREBASE_* secrets in the Secrets panel and restarted the dev server.");
       return;
     }
     await sendPasswordResetEmail(auth, email);

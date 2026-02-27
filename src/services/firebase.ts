@@ -15,14 +15,23 @@ const firebaseConfig = {
 let auth: any = null;
 let googleProvider: any = null;
 
-if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY !== 'undefined') {
+const missingVars = [];
+if (!import.meta.env.VITE_FIREBASE_API_KEY) missingVars.push('VITE_FIREBASE_API_KEY');
+if (!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) missingVars.push('VITE_FIREBASE_AUTH_DOMAIN');
+if (!import.meta.env.VITE_FIREBASE_PROJECT_ID) missingVars.push('VITE_FIREBASE_PROJECT_ID');
+if (!import.meta.env.VITE_FIREBASE_APP_ID) missingVars.push('VITE_FIREBASE_APP_ID');
+
+if (missingVars.length === 0 && import.meta.env.VITE_FIREBASE_API_KEY !== 'undefined') {
   try {
     const app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
+    console.log("Firebase Client initialized successfully.");
   } catch (error) {
     console.error("Firebase initialization failed:", error);
   }
+} else {
+  console.warn("Firebase Client configuration missing:", missingVars.join(', '));
 }
 
 export { auth, googleProvider };
