@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AnalysisStatus } from './types';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -22,18 +22,27 @@ const AppContent: React.FC = () => {
   const [showPricing, setShowPricing] = useState<boolean>(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleUpgrade = async (plan: 'pro' | 'agency') => {
+    console.log(`App: Initiating upgrade to ${plan}...`);
     if (!token || !user) {
+      console.warn("App: Upgrade failed - No token or user found.");
       showNotification("Please sign in to upgrade your plan.", "error");
       return;
     }
     
-    await initiateUpgrade(plan, token, async (newCredits) => {
-      await refreshUser();
-      setShowPricing(false);
-      showNotification(`Successfully upgraded to ${plan.toUpperCase()}! Your new balance is ${newCredits} credits.`, "success");
-    });
+    try {
+      await initiateUpgrade(plan, token, async (newCredits) => {
+        console.log("App: Upgrade success callback received.");
+        await refreshUser();
+        setShowPricing(false);
+        showNotification(`Successfully upgraded to ${plan.toUpperCase()}! Your new balance is ${newCredits} credits.`, "success");
+      });
+    } catch (error: any) {
+      console.error("App: Upgrade error:", error);
+      showNotification(`Upgrade failed: ${error.message || 'Unknown error'}`, "error");
+    }
   };
 
   useEffect(() => {
@@ -127,10 +136,18 @@ const AppContent: React.FC = () => {
                         </ul>
                       </div>
                       <button 
-                        onClick={() => handleUpgrade('pro')}
+                        onClick={() => {
+                          if (!user) {
+                            setShowPricing(false);
+                            navigate('/login');
+                            return;
+                          }
+                          console.log("AppModal: Pro Upgrade button clicked");
+                          handleUpgrade('pro');
+                        }}
                         className="w-full py-4 rounded-2xl bg-white text-blue-600 font-black uppercase tracking-widest text-xs hover:scale-[1.02] transition-all shadow-xl"
                       >
-                        Upgrade Now
+                        {!user ? 'Sign in to Upgrade' : user.plan === 'pro' ? 'Current Plan' : 'Upgrade Now'}
                       </button>
                     </div>
                   </div>

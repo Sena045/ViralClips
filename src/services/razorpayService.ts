@@ -27,7 +27,7 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onS
   console.log("ViralClips AI: Initializing Upgrade Pipeline...");
   console.log("Plan:", plan);
   console.log("Key Detected:", key ? "YES (starts with " + key.substring(0, 8) + "...)" : "NO");
-  console.log("Raw Key Value:", rawKey); // This will help debug if it's 'undefined' string
+  console.log("Raw Key Value:", rawKey); 
 
   // MOCK MODE: If key is missing or set to 'MOCK', provide a simulated success path for testing
   if (!key || key === 'MOCK' || key === 'rzp_test_placeholder') {
@@ -41,6 +41,7 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onS
     );
     
     if (confirmMock) {
+      console.log("User confirmed mock payment. Syncing with server...");
       const credits = plan === 'pro' ? 50 : 250;
       try {
         const res = await fetch("/api/user/upgrade", {
@@ -55,15 +56,19 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onS
           })
         });
         const data = await res.json();
+        console.log("Server response for mock upgrade:", data);
         if (res.ok) {
           onSuccess(data.credits);
         } else {
+          console.error("Server rejected mock upgrade:", data);
           alert(`Mock upgrade failed: ${data.error || 'Unknown error'}`);
         }
       } catch (e) {
         alert("Mock upgrade failed to sync with server. Check console for errors.");
         console.error("Mock upgrade error:", e);
       }
+    } else {
+      console.log("User cancelled mock payment.");
     }
     return;
   }

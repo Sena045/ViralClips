@@ -77,6 +77,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Profile fetch failed:", errorData);
+        // Fallback: We are authenticated via Firebase, but backend profile is missing or failing
+        setUser({ 
+          id: currentUser.uid, 
+          email: currentUser.email || 'authenticated-user', 
+          plan: 'free', 
+          credits: 0 
+        });
       }
     } catch (e) {
       console.error("Auth refresh failed", e);
@@ -86,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    console.log("AuthContext: Initializing...", { authConfigured: !!auth });
     if (!auth) {
       refreshUser();
       return;

@@ -131,14 +131,26 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
       next();
     } else {
       // Fallback for development without Firebase Admin
-      console.warn("Firebase Admin not initialized. Using JWT fallback (may fail for Firebase tokens).");
+      // If the token is a Firebase token (starts with eyJhbGciOiJSUzI1NiI), jwt.verify will fail with "invalid algorithm"
+      if (idToken.startsWith("eyJhbGciOiJSUzI1NiI")) {
+        throw new Error("Firebase Admin is not configured on the server. Please set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY in your environment variables.");
+      }
+      
       const decoded = jwt.verify(idToken, JWT_SECRET) as { userId: string };
       (req as any).userId = decoded.userId;
       next();
     }
   } catch (error: any) {
-    console.error("Auth error:", error.message);
-    res.status(401).json({ error: "Invalid token", details: error.message });
+    const errorMessage = error.message === "invalid algorithm" 
+      ? "Firebase Admin is not configured on the server. Please set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY."
+      : error.message;
+      
+    console.error("Auth error:", errorMessage);
+    res.status(401).json({ 
+      error: "Authentication Failed", 
+      details: errorMessage,
+      help: "Ensure your Firebase Admin environment variables are set correctly in your hosting provider (e.g., Vercel)."
+    });
   }
 };
 

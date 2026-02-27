@@ -1,11 +1,23 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PricingProps {
   onUpgrade: (plan: 'pro' | 'agency') => void;
 }
 
 const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleUpgradeClick = (plan: 'pro' | 'agency') => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    onUpgrade(plan);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 md:pt-20">
       <div className="mb-8 md:mb-12">
@@ -42,7 +54,9 @@ const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
               <li className="flex items-center gap-3 md:gap-4 text-slate-600 text-sm md:text-base font-medium line-through"><i className="fas fa-times"></i> Priority Worker</li>
             </ul>
           </div>
-          <button className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-800 text-slate-500 font-black uppercase tracking-widest text-[10px] md:text-xs cursor-not-allowed">Current Plan</button>
+          <button className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-800 text-slate-500 font-black uppercase tracking-widest text-[10px] md:text-xs cursor-not-allowed">
+            {user?.plan === 'free' ? 'Current Plan' : 'Free Plan'}
+          </button>
         </div>
 
         {/* Pro Plan */}
@@ -63,10 +77,10 @@ const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
             </ul>
           </div>
           <button 
-            onClick={() => onUpgrade('pro')}
+            onClick={() => handleUpgradeClick('pro')}
             className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-white text-blue-600 font-black uppercase tracking-widest text-[10px] md:text-xs hover:scale-[1.02] transition-all shadow-2xl"
           >
-            Upgrade Now
+            {!user ? 'Sign in to Upgrade' : user.plan === 'pro' ? 'Current Plan' : 'Upgrade Now'}
           </button>
         </div>
 
@@ -86,10 +100,10 @@ const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
             </ul>
           </div>
           <button 
-            onClick={() => onUpgrade('agency')}
+            onClick={() => handleUpgradeClick('agency')}
             className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-slate-800 transition-all border border-slate-800"
           >
-            Upgrade Agency
+            {!user ? 'Sign in to Upgrade' : user.plan === 'agency' ? 'Current Plan' : 'Upgrade Agency'}
           </button>
         </div>
       </div>
