@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnalysisStatus, AnalysisState, ViralSegment, TargetingMode, SaaSJob } from '../types';
 import VideoUploader from '../components/VideoUploader';
 import SegmentCard from '../components/SegmentCard';
@@ -14,7 +15,8 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCredits, onShowPricing, showNotification }) => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const navigate = useNavigate();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
@@ -30,6 +32,11 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
   const [downloadingIdx, setDownloadingIdx] = useState<number | null>(null);
 
   const handleFileSelect = (file: File) => {
+    if (!token) {
+      showNotification("Please sign in to initialize neural analysis.", "error");
+      navigate('/login');
+      return;
+    }
     if (userCredits <= 0) {
       onShowPricing();
       showNotification("You've used all your free credits. Upgrade to continue.", "error");
@@ -303,6 +310,17 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
         <h1 className="text-4xl md:text-6xl lg:text-[6.5rem] font-black mb-6 md:mb-10 leading-[0.9] md:leading-[0.85] tracking-tight text-white">
           Viral <span className="gradient-text">H.264</span> Logic.
         </h1>
+        {!user && (
+          <div className="mb-10 animate-bounce">
+            <button 
+              onClick={() => navigate('/login')}
+              className="px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-blue-600/40 transition-all flex items-center gap-3 mx-auto"
+            >
+              <i className="fas fa-sign-in-alt"></i>
+              Initialize Neural Link
+            </button>
+          </div>
+        )}
         <p className="text-lg md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium px-4">
           Extract elite 30-45s segments optimized for 2027 social algorithms with guaranteed platform compatibility.
         </p>

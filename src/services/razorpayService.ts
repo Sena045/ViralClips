@@ -20,7 +20,7 @@ export const loadRazorpay = (options: any) => {
   });
 };
 
-export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credits: number) => void) => {
+export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onSuccess: (credits: number) => void) => {
   const rawKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
   const key = rawKey ? rawKey.trim() : null;
   
@@ -44,14 +44,21 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credit
       try {
         const res = await fetch("/api/user/upgrade", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ 
             paymentId: "pay_mock_" + Math.random().toString(36).substring(7),
             plan: plan
           })
         });
         const data = await res.json();
-        onSuccess(data.credits);
+        if (res.ok) {
+          onSuccess(data.credits);
+        } else {
+          alert(`Mock upgrade failed: ${data.error || 'Unknown error'}`);
+        }
       } catch (e) {
         alert("Mock upgrade failed to sync with server. Check console for errors.");
         console.error("Mock upgrade error:", e);
@@ -76,14 +83,21 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', onSuccess: (credit
       try {
         const res = await fetch("/api/user/upgrade", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ 
             paymentId: response.razorpay_payment_id,
             plan: plan
           })
         });
         const data = await res.json();
-        onSuccess(data.credits);
+        if (res.ok) {
+          onSuccess(data.credits);
+        } else {
+          alert(`Payment successful but failed to sync credits: ${data.error || 'Unknown error'}`);
+        }
       } catch (e) {
         alert("Payment successful but failed to sync credits. Please contact support with ID: " + response.razorpay_payment_id);
         console.error("Sync error:", e);
