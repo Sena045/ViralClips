@@ -36,7 +36,7 @@ const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
             <h4 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight">Free Tier</h4>
             <div className="text-4xl md:text-5xl font-black text-white mb-8 md:mb-10">$0<span className="text-lg text-slate-600 font-medium">/mo</span></div>
             <ul className="space-y-4 md:space-y-6 mb-8 md:mb-12">
-              <li className="flex items-center gap-3 md:gap-4 text-slate-400 text-sm md:text-base font-medium"><i className="fas fa-check text-blue-500"></i> 3 Free Credits</li>
+              <li className="flex items-center gap-3 md:gap-4 text-slate-400 text-sm md:text-base font-medium"><i className="fas fa-check text-blue-500"></i> 10 Free Credits</li>
               <li className="flex items-center gap-3 md:gap-4 text-slate-400 text-sm md:text-base font-medium"><i className="fas fa-check text-blue-500"></i> Max 5min Videos</li>
               <li className="flex items-center gap-3 md:gap-4 text-slate-400 text-sm md:text-base font-medium"><i className="fas fa-check text-blue-500"></i> Standard Queue</li>
               <li className="flex items-center gap-3 md:gap-4 text-slate-600 text-sm md:text-base font-medium line-through"><i className="fas fa-times"></i> Priority Worker</li>

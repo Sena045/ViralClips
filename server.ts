@@ -81,7 +81,7 @@ async function saveToCache(hash: string, result: any): Promise<void> {
 
 // Simulated Database for SaaS Users (Fallback)
 const usersFallback = new Map<string, User>();
-const DEFAULT_FREE_CREDITS = 3;
+const DEFAULT_FREE_CREDITS = 10;
 
 // Helper to get user from Firestore or Fallback
 async function getUser(userId: string): Promise<User | null> {
@@ -118,6 +118,7 @@ async function getUserByEmail(email: string): Promise<User | null> {
 const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.warn("Auth failed: No Bearer token provided");
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -129,14 +130,15 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
       (req as any).email = decodedToken.email;
       next();
     } else {
-      // Fallback for development without Firebase
+      // Fallback for development without Firebase Admin
+      console.warn("Firebase Admin not initialized. Using JWT fallback (may fail for Firebase tokens).");
       const decoded = jwt.verify(idToken, JWT_SECRET) as { userId: string };
       (req as any).userId = decoded.userId;
       next();
     }
-  } catch (error) {
-    console.error("Auth error:", error);
-    res.status(401).json({ error: "Invalid token" });
+  } catch (error: any) {
+    console.error("Auth error:", error.message);
+    res.status(401).json({ error: "Invalid token", details: error.message });
   }
 };
 

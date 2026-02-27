@@ -106,7 +106,7 @@ const AppContent: React.FC = () => {
                         <h4 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Free Tier</h4>
                         <div className="text-4xl font-black text-white mb-8">$0<span className="text-lg text-slate-500 font-medium">/mo</span></div>
                         <ul className="space-y-4 mb-10">
-                          <li className="flex items-center gap-3 text-slate-400 text-sm font-medium"><i className="fas fa-check text-blue-500"></i> 3 Free Credits</li>
+                          <li className="flex items-center gap-3 text-slate-400 text-sm font-medium"><i className="fas fa-check text-blue-500"></i> 10 Free Credits</li>
                           <li className="flex items-center gap-3 text-slate-400 text-sm font-medium"><i className="fas fa-check text-blue-500"></i> Max 5min Videos</li>
                           <li className="flex items-center gap-3 text-slate-400 text-sm font-medium"><i className="fas fa-check text-blue-500"></i> Standard Queue</li>
                         </ul>

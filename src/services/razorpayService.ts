@@ -22,11 +22,12 @@ export const loadRazorpay = (options: any) => {
 
 export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onSuccess: (credits: number) => void) => {
   const rawKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-  const key = rawKey ? rawKey.trim() : null;
+  const key = rawKey && rawKey !== 'undefined' && rawKey !== 'null' ? rawKey.trim() : null;
   
   console.log("ViralClips AI: Initializing Upgrade Pipeline...");
   console.log("Plan:", plan);
   console.log("Key Detected:", key ? "YES (starts with " + key.substring(0, 8) + "...)" : "NO");
+  console.log("Raw Key Value:", rawKey); // This will help debug if it's 'undefined' string
 
   // MOCK MODE: If key is missing or set to 'MOCK', provide a simulated success path for testing
   if (!key || key === 'MOCK' || key === 'rzp_test_placeholder') {
