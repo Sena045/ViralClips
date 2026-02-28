@@ -74,12 +74,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        console.error("Failed to parse profile response as JSON", e);
+        data = { error: "Invalid server response" };
+      }
+      
       if (res.ok) {
-        const data = await res.json();
         setUser(data);
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        console.error("Profile fetch failed:", errorData);
+        console.error("Profile fetch failed:", data);
         // Fallback: We are authenticated via Firebase, but backend profile is missing or failing
         setUser({ 
           id: currentUser.uid, 

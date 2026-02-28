@@ -55,7 +55,15 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onS
             plan: plan
           })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          console.error("Failed to parse server response as JSON", e);
+          data = { error: "Server returned an invalid response format." };
+        }
+
         console.log("Server response for mock upgrade:", data);
         if (res.ok) {
           onSuccess(data.credits);
@@ -98,7 +106,15 @@ export const initiateUpgrade = async (plan: 'pro' | 'agency', token: string, onS
             plan: plan
           })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          console.error("Failed to parse server response as JSON", e);
+          data = { error: "Server returned an invalid response format." };
+        }
+
         if (res.ok) {
           onSuccess(data.credits);
         } else {

@@ -350,26 +350,55 @@ async function startServer() {
 
   // Upgrade credits after payment
   app.post("/api/user/upgrade", authenticate, async (req, res) => {
-    const userId = (req as any).userId;
-    const { plan } = req.body;
-    const user = await getUser(userId);
-    
-    if (!user) return res.status(404).json({ error: "User not found" });
-    
-    const creditsToAdd = plan === 'pro' ? 50 : 250;
-    user.credits += creditsToAdd;
-    user.plan = plan;
-    
-    await saveUser(user);
-    
-    console.log(`Upgrade successful for ${userId}: ${plan}. New credits: ${user.credits}`);
-    
-    res.json({ 
-      success: true, 
-      credits: user.credits,
-      plan: plan,
-      message: `Successfully upgraded to ${plan.toUpperCase()}! ${creditsToAdd} credits added.`
-    });
+    try {
+      const userId = (req as any).userId;
+      const email = (req as any).email;
+      const { plan } = req.body;
+      
+      console.log(`Processing upgrade for user ${userId} to plan ${plan}`);
+      
+      let user = await getUser(userId);
+      
+      // If user doesn't exist in our DB but is authenticated via Firebase, create profile
+      if (!user && email) {
+        console.log(`Creating missing profile for user ${userId} during upgrade`);
+        user = {
+          id: userId,
+          email,
+          passwordHash: "",
+          plan: 'free',
+          credits: DEFAULT_FREE_CREDITS,
+          createdAt: Date.now()
+        };
+        await saveUser(user);
+      }
+      
+      if (!user) {
+        console.error(`Upgrade failed: User ${userId} not found and no email available`);
+        return res.status(404).json({ error: "User profile not found. Please refresh the page and try again." });
+      }
+      
+      const creditsToAdd = plan === 'pro' ? 50 : 250;
+      user.credits += creditsToAdd;
+      user.plan = plan;
+      
+      await saveUser(user);
+      
+      console.log(`Upgrade successful for ${userId}: ${plan}. New credits: ${user.credits}`);
+      
+      res.json({ 
+        success: true, 
+        credits: user.credits,
+        plan: plan,
+        message: `Successfully upgraded to ${plan.toUpperCase()}! ${creditsToAdd} credits added.`
+      });
+    } catch (error: any) {
+      console.error("Upgrade route error:", error);
+      res.status(500).json({ 
+        error: "Internal server error during credit synchronization", 
+        details: error.message 
+      });
+    }
   });
 
   // --- VITE MIDDLEWARE ---
