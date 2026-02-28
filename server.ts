@@ -21,11 +21,20 @@ const JWT_SECRET = process.env.JWT_SECRET || "elite-shorts-secret-key-2024";
 let db: admin.firestore.Firestore | null = null;
 try {
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    // Robust private key parsing for Vercel/Environment variables
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    // Remove quotes if present
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = privateKey.substring(1, privateKey.length - 1);
+    }
+    // Handle escaped newlines
+    privateKey = privateKey.replace(/\\n/g, '\n');
+
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        privateKey: privateKey,
       }),
     });
     db = admin.firestore();
@@ -199,6 +208,14 @@ async function startServer() {
         credits: DEFAULT_FREE_CREDITS,
         createdAt: Date.now()
       };
+      await saveUser(user);
+    }
+    
+    // FIX: If user exists but has 0 credits and is on free plan, give them the default credits
+    // This handles users who were created during the "0 credit" bug period
+    if (user && user.plan === 'free' && user.credits === 0) {
+      console.log(`Topping up credits for user ${userId} (was 0)`);
+      user.credits = DEFAULT_FREE_CREDITS;
       await saveUser(user);
     }
     

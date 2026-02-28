@@ -90,6 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {
       console.error("Auth refresh failed", e);
+      // Even on network error, we want to set a fallback user so the app doesn't think we are logged out
+      setUser({ 
+        id: currentUser.uid, 
+        email: currentUser.email || 'authenticated-user', 
+        plan: 'free', 
+        credits: 10 
+      });
     } finally {
       setIsLoading(false);
     }
