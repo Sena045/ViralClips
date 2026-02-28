@@ -58,6 +58,15 @@ const AppContent: React.FC = () => {
     setToast({ message, type });
   };
 
+  const isPublicRoute = ['/login', '/register', '/forgot-password', '/terms', '/refund', '/privacy', '/business-model', '/pricing'].includes(location.pathname);
+
+  useEffect(() => {
+    if (!isLoading && !user && !isPublicRoute) {
+      console.log("App: Protected route detected while logged out. Redirecting to login.");
+      navigate('/login');
+    }
+  }, [user, isLoading, location.pathname, navigate, isPublicRoute]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -67,6 +76,11 @@ const AppContent: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // Prevent flash of "Guest" layout on protected routes during logout redirect
+  if (!user && !isPublicRoute) {
+    return null;
   }
 
   return (
@@ -81,7 +95,7 @@ const AppContent: React.FC = () => {
           <Layout 
             userCredits={user?.credits || 0} 
             userPlan={user?.plan || 'free'}
-            userId={user?.email || 'Guest'}
+            userId={user?.email || null}
             onShowPricing={() => setShowPricing(true)}
             onLogout={logout}
           >

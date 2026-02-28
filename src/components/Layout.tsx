@@ -5,7 +5,7 @@ interface LayoutProps {
   children: React.ReactNode;
   userCredits: number;
   userPlan: string;
-  userId: string;
+  userId: string | null;
   onShowPricing: () => void;
   onLogout: () => void;
 }
@@ -17,6 +17,8 @@ const Layout: React.FC<LayoutProps> = ({ children, userCredits, userPlan, userId
     { name: 'Dashboard', path: '/', icon: 'fa-house' },
     { name: 'Pricing', path: '/pricing', icon: 'fa-tags' },
   ];
+
+  const isGuest = !userId || userId === 'Guest';
 
   return (
     <div className="min-h-screen bg-[#020617] pb-24 overflow-x-hidden selection:bg-blue-500/30 selection:text-blue-200">
@@ -55,12 +57,12 @@ const Layout: React.FC<LayoutProps> = ({ children, userCredits, userPlan, userId
           <div className="hidden sm:flex items-center gap-3 bg-slate-900/50 border border-slate-800 px-4 py-2 rounded-xl">
             <div className="flex flex-col items-end">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
-                {userId === 'Guest' ? 'Neural Link' : 'Active Pilot'}
+                {isGuest ? 'Neural Link' : 'Active Pilot'}
               </span>
-              <span className="text-[10px] font-bold text-slate-300 truncate max-w-[120px]">{userId}</span>
+              <span className="text-[10px] font-bold text-slate-300 truncate max-w-[120px]">{userId || 'Guest'}</span>
             </div>
             <div className="w-[1px] h-6 bg-slate-800 mx-1"></div>
-            {userId === 'Guest' ? (
+            {isGuest ? (
               <Link 
                 to="/login"
                 className="text-blue-500 hover:text-blue-400 transition-colors"
