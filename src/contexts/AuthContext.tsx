@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const demoToken = localStorage.getItem('viralclips_demo_token');
       if (demoToken) {
         setToken(demoToken);
-        setUser({ id: 'demo-user', email: 'demo@viralclips.ai', plan: 'free', credits: 3 });
+        setUser({ id: 'demo-user', email: 'demo@viralclips.ai', plan: 'free', credits: 10 });
       }
       setIsLoading(false);
       return;
@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: currentUser.uid, 
           email: currentUser.email || 'authenticated-user', 
           plan: 'free', 
-          credits: 0 
+          credits: 10 
         });
       }
     } catch (e) {
@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!auth) {
       // Mock Login
       setToken('demo-token');
-      setUser({ id: 'demo-user', email, plan: 'free', credits: 3 });
+      setUser({ id: 'demo-user', email, plan: 'free', credits: 10 });
       localStorage.setItem('viralclips_demo_token', 'demo-token');
       return;
     }
@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!auth) {
       // Mock Register
       setToken('demo-token');
-      setUser({ id: 'demo-user', email, plan: 'free', credits: 3 });
+      setUser({ id: 'demo-user', email, plan: 'free', credits: 10 });
       localStorage.setItem('viralclips_demo_token', 'demo-token');
       return;
     }
