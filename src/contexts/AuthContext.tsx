@@ -37,13 +37,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const logout = useCallback(async () => {
-    if (auth) {
-      await signOut(auth);
+    console.log("AuthContext: Initiating logout...");
+    try {
+      if (auth) {
+        await signOut(auth);
+        console.log("AuthContext: Firebase signOut successful.");
+      }
+    } catch (error) {
+      console.error("AuthContext: Firebase signOut failed:", error);
+    } finally {
+      // Always clear local state regardless of Firebase signOut success
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+      localStorage.removeItem('viralclips_demo_token');
+      console.log("AuthContext: Local state cleared.");
     }
-    setToken(null);
-    setUser(null);
-    setIsLoading(false);
-    localStorage.removeItem('viralclips_demo_token');
   }, []);
 
   const refreshUser = useCallback(async () => {

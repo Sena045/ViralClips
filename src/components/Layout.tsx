@@ -72,8 +72,11 @@ const Layout: React.FC<LayoutProps> = ({ children, userCredits, userPlan, userId
               </Link>
             ) : (
               <button 
-                onClick={onLogout}
-                className="text-slate-500 hover:text-rose-400 transition-colors"
+                onClick={() => {
+                  console.log("Layout: Logout button clicked");
+                  onLogout();
+                }}
+                className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                 title="Logout"
               >
                 <i className="fas fa-power-off text-sm"></i>

@@ -61,6 +61,13 @@ const AppContent: React.FC = () => {
   const isPublicRoute = ['/login', '/register', '/forgot-password', '/terms', '/refund', '/privacy', '/business-model', '/pricing'].includes(location.pathname);
 
   useEffect(() => {
+    console.log("App: State Check", { 
+      path: location.pathname, 
+      isPublic: isPublicRoute, 
+      hasUser: !!user, 
+      isLoading 
+    });
+    
     if (!isLoading && !user && !isPublicRoute) {
       console.log("App: Protected route detected while logged out. Redirecting to login.");
       navigate('/login');
