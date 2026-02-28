@@ -25,7 +25,9 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
 
   const handleUpgrade = async (plan: 'pro' | 'agency') => {
-    console.log(`App: Initiating upgrade to ${plan}...`);
+    console.log(`App: handleUpgrade called for ${plan}`);
+    console.log(`App: Current state - user: ${user ? user.email : 'null'}, token: ${token ? 'present' : 'null'}`);
+    
     if (!token || !user) {
       console.warn("App: Upgrade failed - No token or user found.");
       showNotification("Please sign in to upgrade your plan.", "error");
@@ -34,7 +36,7 @@ const AppContent: React.FC = () => {
     
     try {
       await initiateUpgrade(plan, token, async (newCredits) => {
-        console.log("App: Upgrade success callback received.");
+        console.log("App: Upgrade success callback received. New credits:", newCredits);
         await refreshUser();
         setShowPricing(false);
         showNotification(`Successfully upgraded to ${plan.toUpperCase()}! Your new balance is ${newCredits} credits.`, "success");
@@ -169,7 +171,7 @@ const AppContent: React.FC = () => {
                 } 
               />
               <Route path="/clips" element={<MyClips />} />
-              <Route path="/pricing" element={<Pricing onUpgrade={handleUpgrade} />} />
+              <Route path="/pricing" element={<Pricing onUpgrade={handleUpgrade} showNotification={showNotification} />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/refund" element={<Refund />} />

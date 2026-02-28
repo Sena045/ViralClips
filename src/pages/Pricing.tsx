@@ -4,18 +4,31 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface PricingProps {
   onUpgrade: (plan: 'pro' | 'agency') => void;
+  showNotification: (message: string, type: 'success' | 'error') => void;
 }
 
-const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
+const Pricing: React.FC<PricingProps> = ({ onUpgrade, showNotification }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [upgrading, setUpgrading] = React.useState<string | null>(null);
 
-  const handleUpgradeClick = (plan: 'pro' | 'agency') => {
+  const handleUpgradeClick = async (plan: 'pro' | 'agency') => {
+    console.log("Pricing: handleUpgradeClick triggered", { plan, hasUser: !!user });
+    
     if (!user) {
+      console.warn("Pricing: User object is null. Redirecting to login.");
+      showNotification("Please sign in to upgrade your plan.", "error");
       navigate('/login');
       return;
     }
-    onUpgrade(plan);
+    
+    setUpgrading(plan);
+    console.log("Pricing: Proceeding with upgrade for:", user.email);
+    try {
+      await onUpgrade(plan);
+    } finally {
+      setUpgrading(null);
+    }
   };
 
   return (
@@ -78,9 +91,10 @@ const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
           </div>
           <button 
             onClick={() => handleUpgradeClick('pro')}
-            className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-white text-blue-600 font-black uppercase tracking-widest text-[10px] md:text-xs hover:scale-[1.02] transition-all shadow-2xl"
+            disabled={upgrading !== null}
+            className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-white text-blue-600 font-black uppercase tracking-widest text-[10px] md:text-xs hover:scale-[1.02] transition-all shadow-2xl disabled:opacity-50"
           >
-            {!user ? 'Sign in to Upgrade' : user.plan === 'pro' ? 'Current Plan' : 'Upgrade Now'}
+            {upgrading === 'pro' ? 'Processing...' : !user ? 'Sign in to Upgrade' : user.plan === 'pro' ? 'Current Plan' : 'Upgrade Now'}
           </button>
         </div>
 
@@ -101,9 +115,10 @@ const Pricing: React.FC<PricingProps> = ({ onUpgrade }) => {
           </div>
           <button 
             onClick={() => handleUpgradeClick('agency')}
-            className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-slate-800 transition-all border border-slate-800"
+            disabled={upgrading !== null}
+            className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-slate-800 transition-all border border-slate-800 disabled:opacity-50"
           >
-            {!user ? 'Sign in to Upgrade' : user.plan === 'agency' ? 'Current Plan' : 'Upgrade Agency'}
+            {upgrading === 'agency' ? 'Processing...' : !user ? 'Sign in to Upgrade' : user.plan === 'agency' ? 'Current Plan' : 'Upgrade Agency'}
           </button>
         </div>
       </div>

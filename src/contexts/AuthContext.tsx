@@ -104,8 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        console.log("AuthContext: Firebase user detected", firebaseUser.email);
         await refreshUser();
       } else {
+        console.log("AuthContext: No Firebase user detected, clearing state.");
         setUser(null);
         setToken(null);
         setIsLoading(false);
