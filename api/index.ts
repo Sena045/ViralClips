@@ -1,13 +1,20 @@
 import express, { Request, Response, NextFunction } from "express";
+import { createServer as createViteServer } from "vite";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 import * as dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import * as admin from "firebase-admin";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const JWT_SECRET = process.env.JWT_SECRET || "elite-shorts-secret-key-2024";
+const PORT = 3000;
 
 // Initialize Firebase Admin
 let db: admin.firestore.Firestore | null = null;
@@ -48,12 +55,14 @@ interface User {
 }
 interface Job {
   id: string;
+  userId: string; // Track who owns this job
   status: 'PENDING' | 'UPLOADING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
   videoName: string;
   videoSize: number;
   result?: any;
   error?: string;
   createdAt: number;
+  isPaid?: boolean; // Track if credit was deducted
 }
 
 const jobs = new Map<string, Job>();
@@ -163,21 +172,39 @@ app.post("/api/jobs/upload-url", authenticate, async (req, res) => {
   const cachedResult = await getCachedResult(videoHash);
   if (cachedResult) {
     const jobId = uuidv4();
-    const job: Job = { id: jobId, status: 'COMPLETED', videoName: fileName, videoSize: fileSize, result: cachedResult, createdAt: Date.now() };
+    const job: Job = { 
+      id: jobId, 
+      userId,
+      status: 'COMPLETED', 
+      videoName: fileName, 
+      videoSize: fileSize, 
+      result: cachedResult, 
+      createdAt: Date.now(),
+      isPaid: true // Cached results are effectively "pre-paid" or free
+    };
     jobs.set(jobId, job);
     return res.json({ jobId, isCached: true, creditsRemaining: user.credits, message: "Instant analysis: Result found in neural cache (0 credits used)." });
   }
   if (user.credits <= 0) return res.status(403).json({ error: "Insufficient credits", code: "OUT_OF_CREDITS" });
   const jobId = uuidv4();
-  const job: Job = { id: jobId, status: 'PENDING', videoName: fileName, videoSize: fileSize, createdAt: Date.now() };
+  const job: Job = { 
+    id: jobId, 
+    userId, // Store user ID in job
+    status: 'PENDING', 
+    videoName: fileName, 
+    videoSize: fileSize, 
+    createdAt: Date.now(),
+    isPaid: false 
+  };
   jobs.set(jobId, job);
-  user.credits -= 1;
-  await saveUser(user);
+  
+  // We check credits here but DON'T deduct yet. 
+  // Deduction happens in /complete to ensure user only pays for successful AI analysis.
   res.json({ jobId, uploadUrl: `/api/mock-upload/${jobId}`, isCached: false, creditsRemaining: user.credits });
 });
 
 app.put("/api/mock-upload/:jobId", (req, res) => {
-  const { jobId } = req.params;
+  const jobId = req.params.jobId as string;
   const job = jobs.get(jobId);
   if (!job) return res.status(404).json({ error: "Job not found" });
   job.status = 'UPLOADING';
@@ -189,21 +216,39 @@ app.put("/api/mock-upload/:jobId", (req, res) => {
 });
 
 app.get("/api/jobs/:jobId", (req, res) => {
-  const { jobId } = req.params;
+  const jobId = req.params.jobId as string;
   const job = jobs.get(jobId);
   if (!job) return res.status(404).json({ error: "Job not found" });
   res.json(job);
 });
 
-app.post("/api/jobs/:jobId/complete", (req, res) => {
-  const { jobId } = req.params;
+app.post("/api/jobs/:jobId/complete", authenticate, async (req, res) => {
+  const jobId = req.params.jobId as string;
   const { result } = req.body;
+  const userId = (req as any).userId;
+  
   const job = jobs.get(jobId);
   if (!job) return res.status(404).json({ error: "Job not found" });
+  if (job.userId !== userId) return res.status(403).json({ error: "Unauthorized" });
+
+  // Deduct credit only on completion
+  if (!job.isPaid) {
+    const user = await getUser(userId);
+    if (user) {
+      if (user.credits > 0) {
+        user.credits -= 1;
+        await saveUser(user);
+        job.isPaid = true;
+      } else {
+        return res.status(403).json({ error: "Insufficient credits", code: "OUT_OF_CREDITS" });
+      }
+    }
+  }
+
   job.status = 'COMPLETED';
   job.result = result;
   saveToCache(getVideoHash(job.videoName, job.videoSize), job.result);
-  res.json({ success: true });
+  res.json({ success: true, creditsRemaining: job.isPaid ? undefined : 0 }); // creditsRemaining is just a hint
 });
 
 app.post("/api/user/upgrade", authenticate, async (req, res) => {
@@ -226,5 +271,32 @@ app.post("/api/user/upgrade", authenticate, async (req, res) => {
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
+
+// --- VITE / STATIC MIDDLEWARE ---
+
+async function startApp() {
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else if (process.env.VERCEL !== "1" && !process.env.LAMBDA_TASK_ROOT) {
+    // Only serve static files if NOT on Vercel (e.g. local production test)
+    // Vercel handles static files via vercel.json routes
+    app.use(express.static("dist"));
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(__dirname, "..", "dist", "index.html"));
+    });
+  }
+
+  if (process.env.NODE_ENV !== "production" || (process.env.VERCEL !== "1" && !process.env.LAMBDA_TASK_ROOT)) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`SaaS Backend running at http://localhost:${PORT}`);
+    });
+  }
+}
+
+startApp();
 
 export default app;

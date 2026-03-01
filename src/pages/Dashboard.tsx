@@ -77,6 +77,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userCredits, userPlan, onUpdateCr
   const startAnalysis = async () => {
     if (!videoFile) return;
 
+    // Pre-flight check for AI key
+    const aiKey = process.env.GEMINI_API_KEY;
+    if (!aiKey || aiKey === "") {
+      showNotification("Neural Engine key is missing. Please check your environment configuration.", "error");
+      return;
+    }
+
     setAnalysis({ status: AnalysisStatus.UPLOADING });
     
     try {
