@@ -142,8 +142,6 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
       next();
     } else {
       // Fallback for development without Firebase Admin
-      // If the token is a Firebase token (starts with eyJhbGciOiJSUzI1NiI), jwt.verify will fail with "invalid algorithm"
-      // In this case, we decode it without verification to allow the app to function in "demo" mode.
       if (idToken.startsWith("eyJhbGciOiJSUzI1NiI")) {
         console.warn("Firebase Admin not configured. Decoding token without verification for demo mode.");
         const decoded = jwt.decode(idToken) as any;
@@ -181,230 +179,165 @@ function getVideoHash(name: string, size: number): string {
   return `${name}-${size}`;
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+const PORT = 3000;
 
-  app.use(cors());
-  app.use(express.json({ limit: '50mb' }));
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
 
-  // --- SaaS API ROUTES ---
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: Date.now() });
+});
 
-  /**
-   * 0. Get User Profile (Credits)
-   * This route also handles profile creation for new Firebase users
-   */
-  app.get("/api/user/profile", authenticate, async (req, res) => {
-    const userId = (req as any).userId;
-    const email = (req as any).email;
-    
-    let user = await getUser(userId);
-    
-    // If user doesn't exist in our DB but is authenticated via Firebase, create profile
-    if (!user && email) {
-      user = {
-        id: userId,
-        email,
-        passwordHash: "", // Not needed for Firebase users
-        plan: 'free',
-        credits: DEFAULT_FREE_CREDITS,
-        createdAt: Date.now()
-      };
-      await saveUser(user);
-    }
-    
-    // FIX: If user exists but has 0 credits and is on free plan, give them the default credits
-    // This handles users who were created during the "0 credit" bug period
-    if (user && user.plan === 'free' && user.credits === 0) {
-      console.log(`Topping up credits for user ${userId} (was 0)`);
-      user.credits = DEFAULT_FREE_CREDITS;
-      await saveUser(user);
-    }
-    
-    if (!user) return res.status(404).json({ error: "User not found" });
-    
-    res.json({
+// --- SaaS API ROUTES ---
+
+/**
+ * 0. Get User Profile (Credits)
+ */
+app.get("/api/user/profile", authenticate, async (req, res) => {
+  const userId = (req as any).userId;
+  const email = (req as any).email;
+  
+  let user = await getUser(userId);
+  
+  if (!user && email) {
+    user = {
       id: userId,
-      email: user.email,
-      credits: user.credits,
-      plan: user.plan
-    });
+      email,
+      passwordHash: "",
+      plan: 'free',
+      credits: DEFAULT_FREE_CREDITS,
+      createdAt: Date.now()
+    };
+    await saveUser(user);
+  }
+  
+  if (user && user.plan === 'free' && user.credits === 0) {
+    user.credits = DEFAULT_FREE_CREDITS;
+    await saveUser(user);
+  }
+  
+  if (!user) return res.status(404).json({ error: "User not found" });
+  
+  res.json({
+    id: userId,
+    email: user.email,
+    credits: user.credits,
+    plan: user.plan
   });
+});
 
-  /**
-   * 1. Request a Presigned URL for Upload
-   */
-  app.post("/api/jobs/upload-url", authenticate, async (req, res) => {
-    const userId = (req as any).userId;
-    const user = await getUser(userId);
-    
-    if (!user) return res.status(404).json({ error: "User not found" });
-    
-    const { fileName, fileSize } = req.body;
-    const videoHash = getVideoHash(fileName, fileSize);
-    
-    // CHECK CACHE FIRST
-    const cachedResult = await getCachedResult(videoHash);
-    if (cachedResult) {
-      const jobId = uuidv4();
-      
-      const job: Job = {
-        id: jobId,
-        status: 'COMPLETED',
-        videoName: fileName,
-        videoSize: fileSize,
-        result: cachedResult,
-        createdAt: Date.now()
-      };
-      
-      jobs.set(jobId, job);
-      
-      return res.json({
-        jobId,
-        isCached: true,
-        creditsRemaining: user.credits,
-        message: "Instant analysis: Result found in neural cache (0 credits used)."
-      });
-    }
-
-    // NO CACHE - CHECK CREDITS
-    if (user.credits <= 0) {
-      return res.status(403).json({ 
-        error: "Insufficient credits", 
-        code: "OUT_OF_CREDITS" 
-      });
-    }
-
+/**
+ * 1. Request a Presigned URL for Upload
+ */
+app.post("/api/jobs/upload-url", authenticate, async (req, res) => {
+  const userId = (req as any).userId;
+  const user = await getUser(userId);
+  
+  if (!user) return res.status(404).json({ error: "User not found" });
+  
+  const { fileName, fileSize } = req.body;
+  const videoHash = getVideoHash(fileName, fileSize);
+  
+  const cachedResult = await getCachedResult(videoHash);
+  if (cachedResult) {
     const jobId = uuidv4();
     const job: Job = {
       id: jobId,
-      status: 'PENDING',
+      status: 'COMPLETED',
       videoName: fileName,
       videoSize: fileSize,
+      result: cachedResult,
       createdAt: Date.now()
     };
-    
     jobs.set(jobId, job);
-    user.credits -= 1;
-    await saveUser(user);
-
-    const uploadUrl = `/api/mock-upload/${jobId}`;
-    
-    res.json({
+    return res.json({
       jobId,
-      uploadUrl,
-      isCached: false,
-      creditsRemaining: user.credits
+      isCached: true,
+      creditsRemaining: user.credits,
+      message: "Instant analysis: Result found in neural cache (0 credits used)."
     });
-  });
+  }
 
-  /**
-   * 2. Mock Upload Endpoint
-   * Simulates the direct-to-S3 upload.
-   */
-  app.put("/api/mock-upload/:jobId", (req, res) => {
-    const { jobId } = req.params;
-    const job = jobs.get(jobId);
-    
-    if (!job) return res.status(404).json({ error: "Job not found" });
-    
-    job.status = 'UPLOADING';
-    
-    // Consume the stream to avoid connection reset issues with large files
-    req.on('data', () => {}); 
-    req.on('end', () => {
-      job.status = 'PROCESSING';
-      res.status(200).send();
-    });
-  });
+  if (user.credits <= 0) {
+    return res.status(403).json({ error: "Insufficient credits", code: "OUT_OF_CREDITS" });
+  }
 
-  /**
-   * 3. Get Job Status
-   */
-  app.get("/api/jobs/:jobId", (req, res) => {
-    const { jobId } = req.params;
-    const job = jobs.get(jobId);
-    
-    if (!job) return res.status(404).json({ error: "Job not found" });
-    
-    res.json(job);
-  });
+  const jobId = uuidv4();
+  const job: Job = {
+    id: jobId,
+    status: 'PENDING',
+    videoName: fileName,
+    videoSize: fileSize,
+    createdAt: Date.now()
+  };
+  jobs.set(jobId, job);
+  user.credits -= 1;
+  await saveUser(user);
 
-  /**
-   * 4. Update Job Result (from client)
-   */
-  app.post("/api/jobs/:jobId/complete", (req, res) => {
-    const { jobId } = req.params;
-    const { result } = req.body;
-    const job = jobs.get(jobId);
-    
-    if (!job) return res.status(404).json({ error: "Job not found" });
-    
-    job.status = 'COMPLETED';
-    job.result = result;
-    
-    // STORE IN CACHE
-    const videoHash = getVideoHash(job.videoName, job.videoSize);
-    saveToCache(videoHash, job.result);
-    
-    res.json({ success: true });
+  res.json({
+    jobId,
+    uploadUrl: `/api/mock-upload/${jobId}`,
+    isCached: false,
+    creditsRemaining: user.credits
   });
+});
 
-  // Upgrade credits after payment
-  app.post("/api/user/upgrade", authenticate, async (req, res) => {
-    try {
-      const userId = (req as any).userId;
-      const email = (req as any).email;
-      const { plan } = req.body;
-      
-      console.log(`Processing upgrade for user ${userId} to plan ${plan}`);
-      
-      let user = await getUser(userId);
-      
-      // If user doesn't exist in our DB but is authenticated via Firebase, create profile
-      if (!user && email) {
-        console.log(`Creating missing profile for user ${userId} during upgrade`);
-        user = {
-          id: userId,
-          email,
-          passwordHash: "",
-          plan: 'free',
-          credits: DEFAULT_FREE_CREDITS,
-          createdAt: Date.now()
-        };
-        await saveUser(user);
-      }
-      
-      if (!user) {
-        console.error(`Upgrade failed: User ${userId} not found and no email available`);
-        return res.status(404).json({ error: "User profile not found. Please refresh the page and try again." });
-      }
-      
-      const creditsToAdd = plan === 'pro' ? 50 : 250;
-      user.credits += creditsToAdd;
-      user.plan = plan;
-      
+app.put("/api/mock-upload/:jobId", (req, res) => {
+  const { jobId } = req.params;
+  const job = jobs.get(jobId);
+  if (!job) return res.status(404).json({ error: "Job not found" });
+  job.status = 'UPLOADING';
+  req.on('data', () => {}); 
+  req.on('end', () => {
+    job.status = 'PROCESSING';
+    res.status(200).send();
+  });
+});
+
+app.get("/api/jobs/:jobId", (req, res) => {
+  const { jobId } = req.params;
+  const job = jobs.get(jobId);
+  if (!job) return res.status(404).json({ error: "Job not found" });
+  res.json(job);
+});
+
+app.post("/api/jobs/:jobId/complete", (req, res) => {
+  const { jobId } = req.params;
+  const { result } = req.body;
+  const job = jobs.get(jobId);
+  if (!job) return res.status(404).json({ error: "Job not found" });
+  job.status = 'COMPLETED';
+  job.result = result;
+  saveToCache(getVideoHash(job.videoName, job.videoSize), job.result);
+  res.json({ success: true });
+});
+
+app.post("/api/user/upgrade", authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const email = (req as any).email;
+    const { plan } = req.body;
+    let user = await getUser(userId);
+    if (!user && email) {
+      user = { id: userId, email, passwordHash: "", plan: 'free', credits: DEFAULT_FREE_CREDITS, createdAt: Date.now() };
       await saveUser(user);
-      
-      console.log(`Upgrade successful for ${userId}: ${plan}. New credits: ${user.credits}`);
-      
-      res.json({ 
-        success: true, 
-        credits: user.credits,
-        plan: plan,
-        message: `Successfully upgraded to ${plan.toUpperCase()}! ${creditsToAdd} credits added.`
-      });
-    } catch (error: any) {
-      console.error("Upgrade route error:", error);
-      res.status(500).json({ 
-        error: "Internal server error during credit synchronization", 
-        details: error.message 
-      });
     }
-  });
+    if (!user) return res.status(404).json({ error: "User profile not found" });
+    const creditsToAdd = plan === 'pro' ? 50 : 250;
+    user.credits += creditsToAdd;
+    user.plan = plan;
+    await saveUser(user);
+    res.json({ success: true, credits: user.credits, plan: plan });
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
 
-  // --- VITE MIDDLEWARE ---
+// --- VITE / STATIC MIDDLEWARE ---
 
+async function startApp() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -413,15 +346,18 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     app.use(express.static("dist"));
-    // SPA Fallback for production
     app.get("*", (req, res) => {
       res.sendFile(path.resolve(__dirname, "dist", "index.html"));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`SaaS Backend running at http://localhost:${PORT}`);
-  });
+  if (process.env.NODE_ENV !== "production" || (process.env.VERCEL !== "1" && !process.env.LAMBDA_TASK_ROOT)) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`SaaS Backend running at http://localhost:${PORT}`);
+    });
+  }
 }
 
-startServer();
+startApp();
+
+export default app;
