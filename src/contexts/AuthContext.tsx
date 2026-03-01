@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("AuthContext: Firebase signOut failed:", error);
     } finally {
       // Always clear local state regardless of Firebase signOut success
+      console.log("AuthContext: Clearing local state...");
       setToken(null);
       setUser(null);
       setIsLoading(false);
@@ -56,12 +57,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshUser = useCallback(async () => {
+    console.log("AuthContext: refreshUser called");
     if (!auth) {
       // Demo Mode Fallback
       const demoToken = localStorage.getItem('viralclips_demo_token');
       if (demoToken) {
+        console.log("AuthContext: Demo token found, setting demo user");
         setToken(demoToken);
         setUser({ id: 'demo-user', email: 'demo@viralclips.ai', plan: 'free', credits: 10 });
+      } else {
+        console.log("AuthContext: No demo token found");
       }
       setIsLoading(false);
       return;
@@ -69,10 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const currentUser = auth.currentUser;
     if (!currentUser) {
+      console.log("AuthContext: No auth.currentUser found in refreshUser");
       setIsLoading(false);
       return;
     }
     
+    console.log("AuthContext: Fetching profile for", currentUser.email);
+    setIsLoading(true);
     try {
       const idToken = await currentUser.getIdToken(true);
       setToken(idToken);
@@ -87,14 +95,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         data = await res.json();
       } catch (e) {
-        console.error("Failed to parse profile response as JSON", e);
+        console.error("AuthContext: Failed to parse profile response as JSON", e);
         data = { error: "Invalid server response" };
       }
       
       if (res.ok) {
+        console.log("AuthContext: Profile fetch successful", data.email);
         setUser(data);
       } else {
-        console.error("Profile fetch failed:", data);
+        console.error("AuthContext: Profile fetch failed:", data);
         // Fallback: We are authenticated via Firebase, but backend profile is missing or failing
         setUser({ 
           id: currentUser.uid, 
@@ -104,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } catch (e) {
-      console.error("Auth refresh failed", e);
+      console.error("AuthContext: Auth refresh failed", e);
       // Even on network error, we want to set a fallback user so the app doesn't think we are logged out
       setUser({ 
         id: currentUser.uid, 
@@ -113,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         credits: 10 
       });
     } finally {
+      console.log("AuthContext: refreshUser finished, setting isLoading to false");
       setIsLoading(false);
     }
   }, []);
