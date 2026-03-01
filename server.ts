@@ -30,15 +30,17 @@ try {
     // Handle escaped newlines
     privateKey = privateKey.replace(/\\n/g, '\n');
 
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: privateKey,
-      }),
-    });
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: privateKey,
+        }),
+      });
+      console.log("Firebase Admin initialized successfully.");
+    }
     db = admin.firestore();
-    console.log("Firebase Admin initialized successfully.");
   } else {
     console.warn("Firebase environment variables missing. Falling back to in-memory storage.");
   }
